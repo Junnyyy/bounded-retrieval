@@ -23,7 +23,9 @@ function parseArguments(arguments_: readonly string[]): SeedArguments {
     const argument = arguments_[index];
     const value = arguments_[index + 1];
 
-    if (argument === "--force") {
+    if (argument === "--") {
+      continue;
+    } else if (argument === "--force") {
       force = true;
     } else if (argument === "--output" && value !== undefined) {
       output = value;
