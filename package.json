@@ -1,0 +1,28 @@
+{
+  "name": "bounded-retrieval",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": "24.20.0",
+    "pnpm": "11.18.0"
+  },
+  "scripts": {
+    "check": "pnpm run typecheck && pnpm test",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/**/*.test.ts",
+    "mcp": "node src/mcp/server.ts",
+    "seed": "node src/cli/seed.ts",
+    "evaluate": "node src/cli/evaluate.ts",
+    "fx": "node scripts/run-fx.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.0.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "7.0.2"
+  }
+}

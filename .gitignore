@@ -1,0 +1,9 @@
+node_modules/
+.pnpm-store/
+artifacts/
+coverage/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+.DS_Store
