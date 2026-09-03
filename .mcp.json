@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bounded-retrieval": {
+      "command": "pnpm",
+      "args": ["run", "mcp"]
+    }
+  }
+}

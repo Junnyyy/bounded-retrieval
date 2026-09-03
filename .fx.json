@@ -1,0 +1,5 @@
+{
+  "max_agent_steps": 0,
+  "max_tool_result_bytes": 32768,
+  "context": true
+}

@@ -44,7 +44,7 @@ test("generates a deterministic flat corpus and separate ground truth", () => {
         .prepare(
           "SELECT name FROM sqlite_schema WHERE type = 'table' ORDER BY name",
         )
-        .all() as readonly { name: string }[];
+        .all() as unknown as readonly { name: string }[];
 
       assert.equal(row.count, TEST_PROFILE.messageCount);
       assert.ok(ftsRow.count >= result.groundTruth.openAi.matchingMessageCount);
@@ -81,7 +81,7 @@ test("uses one canonical message table rather than normalized user tables", () =
     try {
       const columns = database
         .prepare("PRAGMA table_info(messages)")
-        .all() as readonly { name: string }[];
+        .all() as unknown as readonly { name: string }[];
       const columnNames = columns.map((column) => column.name);
       assert.ok(columnNames.includes("sender_name"));
       assert.ok(columnNames.includes("sender_organization"));

@@ -35,7 +35,7 @@ export function createDeterministicRandom(seed: string): DeterministicRandom {
       return Math.floor(next() * maximumExclusive);
     },
     next,
-    pick(values) {
+    pick<Value>(values: readonly Value[]): Value {
       if (values.length === 0) {
         throw new Error("Cannot select from an empty collection");
       }

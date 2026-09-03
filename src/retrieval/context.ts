@@ -36,7 +36,7 @@ function getRows(
   parameters: readonly SQLInputValue[],
 ): readonly MessageRecord[] {
   return (
-    database.prepare(sql).all(...parameters) as readonly MessageRow[]
+    database.prepare(sql).all(...parameters) as unknown as readonly MessageRow[]
   ).map(rowToMessage);
 }
 

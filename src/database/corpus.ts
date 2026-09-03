@@ -29,7 +29,7 @@ export function openCorpusDatabase(
 export function readCorpusMetadata(database: DatabaseSync): CorpusMetadata {
   const rows = database
     .prepare("SELECT key, value FROM corpus_metadata ORDER BY key")
-    .all() as readonly { key: string; value: string }[];
+    .all() as unknown as readonly { key: string; value: string }[];
   const values = Object.fromEntries(rows.map((row) => [row.key, row.value]));
 
   if (
