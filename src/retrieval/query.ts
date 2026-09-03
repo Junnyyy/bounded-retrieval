@@ -22,11 +22,11 @@ export interface QueryClause {
 export interface QueryFilters {
   readonly conversationIds?: readonly string[];
   readonly conversationTypes?: readonly ConversationType[];
-  readonly fromInclusive?: number;
+  readonly fromInclusive?: number | null;
   readonly senderIds?: readonly string[];
   readonly senderTypes?: readonly SenderType[];
   readonly threadIds?: readonly string[];
-  readonly toExclusive?: number;
+  readonly toExclusive?: number | null;
 }
 
 export interface StructuredQuery {
@@ -81,7 +81,9 @@ function assertFilterSize(name: string, values: readonly string[]): void {
   }
 }
 
-export function normalizeQuery(query: StructuredQuery): NormalizedQuery {
+export function normalizeQuery(
+  query: StructuredQuery | NormalizedQuery,
+): NormalizedQuery {
   if (query.combine !== "all" && query.combine !== "any") {
     throw new Error('Query combine must be either "all" or "any"');
   }
