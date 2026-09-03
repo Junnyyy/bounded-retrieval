@@ -26,6 +26,14 @@
 - Use built-in `node:sqlite`, Node TypeScript type stripping, `tsc --noEmit`, and `node:test`.
 - Pin direct dependencies exactly and commit `pnpm-lock.yaml`.
 - FX is installed separately. `pnpm fx` may verify and launch it but must not download or update it.
+- Measure full MCP-compatible result bytes, including both `structuredContent` and the compatibility text representation.
+- FX's project `max_tool_result_bytes` stays above the server's 16 KiB ceiling so harness truncation cannot mask a server-budget defect.
+
+## Evaluation
+
+- Keep the naïve regex baseline evaluation-only; it must not appear in the primary MCP tool surface.
+- The default deterministic evaluation uses the realistic 40,000-message month profile and makes no model or provider call.
+- Separate deterministic retrieval claims from live agent quality claims. A bounded server cannot guarantee that an agent will choose efficient tools or synthesize evidence well.
 
 ## Workflow
 
