@@ -1,0 +1,157 @@
+{
+  "status": "Corrected matcher and sampler baseline, before compact responses or duplicate-aware discovery.",
+  "sourceCheckpoint": "0feab81 plus evidence-quality instrumentation",
+  "corpus": {
+    "messageCount": 40000,
+    "profile": "month",
+    "realistic": true,
+    "seed": "bounded-retrieval-evaluation-v1",
+    "version": "corpus-4f6e4a3f4bb9439c"
+  },
+  "node": "v24.20.0",
+  "note": "Deterministic retrieval only. Timings and opaque handles omitted; byte totals can vary slightly with serialized timing digits in schema v1. Refined vocabulary is hand-authored and fixture-informed.",
+  "frequencyBytes": 4084,
+  "originalInvestigation": {
+    "bytes": 24330,
+    "categories": []
+  },
+  "experiments": [
+    {
+      "name": "ranked",
+      "strategy": "One client-filtered OpenAI discovery, up to eight items.",
+      "bytes": 15444,
+      "calls": [
+        {
+          "tool": "discover_messages",
+          "bytes": 15444,
+          "candidateRowsExamined": 514,
+          "categories": []
+        }
+      ],
+      "quality": {
+        "allCategoriesSupported": false,
+        "clippedItems": 0,
+        "conversations": 8,
+        "days": 5,
+        "missingCategories": [
+          "data_privacy",
+          "model_quality",
+          "pricing",
+          "reliability",
+          "vendor_lock_in"
+        ],
+        "repeatedExcerptBytes": 392,
+        "supportedCategories": [],
+        "uniqueExcerpts": 1,
+        "uniqueMessages": 8,
+        "visibleItems": 8
+      }
+    },
+    {
+      "name": "ranked_then_sample",
+      "strategy": "Client-filtered OpenAI discovery (five), then separate across-time and across-conversation samples (eight each).",
+      "bytes": 35688,
+      "calls": [
+        {
+          "tool": "discover_messages",
+          "bytes": 11436,
+          "candidateRowsExamined": 511,
+          "categories": []
+        },
+        {
+          "tool": "sample_messages",
+          "bytes": 12116,
+          "candidateRowsExamined": 506,
+          "categories": [
+            "data_privacy",
+            "reliability"
+          ]
+        },
+        {
+          "tool": "sample_messages",
+          "bytes": 12136,
+          "candidateRowsExamined": 506,
+          "categories": [
+            "data_privacy",
+            "pricing",
+            "reliability"
+          ]
+        }
+      ],
+      "quality": {
+        "allCategoriesSupported": false,
+        "clippedItems": 0,
+        "conversations": 9,
+        "days": 16,
+        "missingCategories": [
+          "model_quality",
+          "vendor_lock_in"
+        ],
+        "repeatedExcerptBytes": 706,
+        "supportedCategories": [
+          "data_privacy",
+          "pricing",
+          "reliability"
+        ],
+        "uniqueExcerpts": 9,
+        "uniqueMessages": 21,
+        "visibleItems": 21
+      }
+    },
+    {
+      "name": "refined_lexical",
+      "strategy": "Three hand-authored queries: OpenAI AND concern-prefix, OpenAI AND needs, OpenAI AND difficult, all client-filtered. Vocabulary is fixture-informed; this is not a live agent or held-out language result.",
+      "bytes": 45564,
+      "calls": [
+        {
+          "tool": "discover_messages",
+          "bytes": 15348,
+          "candidateRowsExamined": 40,
+          "categories": [
+            "pricing"
+          ]
+        },
+        {
+          "tool": "discover_messages",
+          "bytes": 15760,
+          "candidateRowsExamined": 40,
+          "categories": [
+            "data_privacy",
+            "model_quality",
+            "pricing"
+          ]
+        },
+        {
+          "tool": "discover_messages",
+          "bytes": 14456,
+          "candidateRowsExamined": 24,
+          "categories": [
+            "data_privacy",
+            "model_quality",
+            "pricing",
+            "vendor_lock_in"
+          ]
+        }
+      ],
+      "quality": {
+        "allCategoriesSupported": false,
+        "clippedItems": 0,
+        "conversations": 10,
+        "days": 14,
+        "missingCategories": [
+          "reliability"
+        ],
+        "repeatedExcerptBytes": 1393,
+        "supportedCategories": [
+          "data_privacy",
+          "model_quality",
+          "pricing",
+          "vendor_lock_in"
+        ],
+        "uniqueExcerpts": 4,
+        "uniqueMessages": 24,
+        "visibleItems": 24
+      }
+    }
+  ]
+}

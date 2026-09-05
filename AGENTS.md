@@ -40,3 +40,55 @@
 - Make small, atomic commits at working checkpoints.
 - Update this file when a durable project-specific constraint or learning emerges.
 - Do not create a pull request unless explicitly requested.
+- Avoid em dashes in project documentation.
+- Keep the README centered on purpose, design reasoning, research, measured
+  evidence, applying the lessons to other MCPs, and reproducible checks. Put
+  detailed setup in `docs/running.md` and response semantics in
+  `docs/discovery-results.md`. Verify README benchmark
+  claims against a fresh default evaluation; the week demo uses a different seed
+  and corpus from the month benchmark.
+- The README demo uses a GitHub-hosted video attachment. Link other docs to the
+  README demo and keep the duplicate MP4 out of the repository tree.
+
+## Discovery evaluation learnings
+
+- Match counting supplies snippet offsets in one pass. Keep eligibility independent
+  of matcher cursor state and row order; a bounded sample must not become small
+  because later valid rows were skipped.
+- Sampling is over previously undisclosed messages. Seed the order of strata when
+  there are more dates or conversations than slots; do not silently remove
+  same-thread messages and change the sampled population.
+- Thread diversity and distinct text do not establish task relevance. Evaluate
+  qualitative support separately from byte savings using labels that remain
+  outside tool results and retrieval decisions.
+- Any duplicate grouping must compare full message text before clipping and state
+  the population over which repeat counts were computed. A representative's
+  attribution does not describe every sender in its group.
+- Discovery counts selected duplicate groups during its existing exact measurement
+  pass. Both passes share execution limits; return null group counts if measurement
+  is incomplete. Group totals never authorize undisclosed expansion anchors.
+- MCP response schema version 2 has tool-specific output schemas. Keep all reasons
+  for truncation, including byte fitting, and compute omission counts from the
+  transmitted selection. Preserve thread roots and anchors longest during context
+  fitting.
+- Normalize a single deduplicated clause to `combine: all` so equivalent `any`
+  requests cannot create a separate disclosure budget.
+- Evaluation schema version 2 scores visible category support and preserves the
+  old fixed trace as `legacyClientConcerns`. The successful refined vocabulary is
+  fixture-informed; seed checks do not establish live agent or language quality.
+
+## FX measurement learnings
+
+- Inspect an exact FX session ID for the saved tool trace. FX 0.0.7 `session last
+  --json` can return only a summary; `session --id <id> --json` includes execution.
+- Keep server core bytes, captured MCP bytes including SDK metadata, and FX tool
+  output bytes separate. Include capability search and tool-selection calls in
+  whole-run totals, and never present each-output-once bytes as model tokens.
+- Missing per-run token or cost fields mean unavailable. Do not attribute a local
+  24-hour usage aggregate to a single run.
+- On macOS, sandboxed FX status can report missing authentication while the
+  existing Keychain login works outside the sandbox; verify before asking for login.
+- Keep current contracts and measured comparison evidence. Remove superseded
+  design projections once the implementation report covers their decisions.
+- Raw FX session exports can include local filesystem paths and host context.
+  Keep them under ignored `artifacts/`; publish only curated example records.

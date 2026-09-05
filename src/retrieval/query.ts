@@ -164,7 +164,7 @@ export function normalizeQuery(
 
   return {
     clauses,
-    combine: query.combine,
+    combine: clauses.length === 1 ? "all" : query.combine,
     filters: {
       conversationIds,
       conversationTypes,
@@ -205,6 +205,7 @@ export interface CompiledClause extends QueryClause {
 
 export interface ClauseMatch {
   readonly clause: CompiledClause;
+  readonly firstOffset: number;
   readonly occurrences: number;
 }
 
@@ -238,10 +239,17 @@ export function matchText(
   clauses: readonly CompiledClause[],
   combine: "all" | "any",
 ): readonly ClauseMatch[] | null {
-  const matches = clauses.map((clause) => ({
-    clause,
-    occurrences: Array.from(text.matchAll(clause.pattern)).length,
-  }));
+  const matches = clauses.map((clause) => {
+    // matchAll copies lastIndex. Eligibility must never inherit a prior cursor.
+    clause.pattern.lastIndex = 0;
+    let occurrences = 0;
+    let firstOffset = 0;
+    for (const match of text.matchAll(clause.pattern)) {
+      if (occurrences === 0) firstOffset = match.index;
+      occurrences += 1;
+    }
+    return { clause, firstOffset, occurrences };
+  });
   const accepted =
     combine === "all"
       ? matches.every((match) => match.occurrences > 0)

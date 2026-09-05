@@ -27,6 +27,9 @@ export interface SampleResult {
   readonly outcome: "complete" | "incomplete";
   readonly query: NormalizedQuery;
   readonly strategy: SampleStrategy;
+  readonly reason: "candidate_limit" | "time_limit" | null;
+  readonly populationMessages: number;
+  readonly populationStrata: number;
 }
 
 function score(seed: string, strategy: SampleStrategy, messageId: string): string {
@@ -75,6 +78,8 @@ export function sampleMessages(
   const startedAt = performance.now();
   let candidateRowsExamined = 0;
   let outcome: "complete" | "incomplete" = "complete";
+  let reason: SampleResult["reason"] = null;
+  let populationMessages = 0;
 
   for (const candidate of iterateCandidates(database, query)) {
     candidateRowsExamined += 1;
@@ -83,6 +88,7 @@ export function sampleMessages(
       performance.now() - startedAt > executionLimits.maxMilliseconds
     ) {
       outcome = "incomplete";
+      reason = candidateRowsExamined > executionLimits.maxCandidateRows ? "candidate_limit" : "time_limit";
       break;
     }
     if (excluded.has(candidate.message.messageId)) continue;
@@ -95,6 +101,7 @@ export function sampleMessages(
       rank: null,
     });
     if (evidence === null) continue;
+    populationMessages += 1;
     const key = stratum(options.strategy, evidence);
     const bucket = buckets.get(key) ?? [];
     insertScored(
@@ -109,21 +116,18 @@ export function sampleMessages(
   }
 
   const selected: EvidenceRecord[] = [];
-  const selectedThreads = new Set<string>();
-  const orderedBuckets = Array.from(buckets.entries()).sort(([left], [right]) =>
-    left.localeCompare(right),
-  );
+  // Choose strata by seeded priority, not chronological or ID order. Sampling
+  // remains over messages; removing same-thread rows would bias that population.
+  const orderedBuckets = Array.from(buckets, ([key, bucket]) => ({
+    key, bucket, score: score(options.seed, options.strategy, `stratum:${key}`),
+  })).sort((left, right) => left.score.localeCompare(right.score) || left.key.localeCompare(right.key));
   let position = 0;
   while (selected.length < limit) {
     let added = false;
-    for (const [, bucket] of orderedBuckets) {
+    for (const { bucket } of orderedBuckets) {
       const candidate = bucket[position];
-      if (
-        candidate !== undefined &&
-        !selectedThreads.has(candidate.evidence.threadRef)
-      ) {
+      if (candidate !== undefined) {
         selected.push(candidate.evidence);
-        selectedThreads.add(candidate.evidence.threadRef);
         added = true;
         if (selected.length === limit) break;
       }
@@ -139,5 +143,8 @@ export function sampleMessages(
     outcome,
     query,
     strategy: options.strategy,
+    reason,
+    populationMessages,
+    populationStrata: buckets.size,
   };
 }

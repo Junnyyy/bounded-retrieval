@@ -12,6 +12,8 @@ import {
 import { generateCorpus } from "../corpus/generate.ts";
 import type { CorpusProfile } from "../corpus/profiles.ts";
 import { BoundedRetrievalService } from "./bounded-retrieval-service.ts";
+import { discoverOutputSchema, measureOutputSchema, sampleOutputSchema, expandContextOutputSchema, exportOutputSchema } from "../mcp/schemas.ts";
+import { withTestCorpus } from "../testing/corpus.ts";
 
 const PROFILE: CorpusProfile = {
   days: 7,
@@ -65,7 +67,6 @@ test("samples undisclosed evidence and expands only a disclosed anchor", () => {
   withService((service) => {
     const discovery = service.discoverMessages(QUERY);
     const discovered = discovery.envelope.result.evidence as readonly {
-      message_id: string;
       message_ref: string;
     }[];
     const sampled = service.sampleMessages(
@@ -74,12 +75,11 @@ test("samples undisclosed evidence and expands only a disclosed anchor", () => {
       "service-sample",
     );
     const sampledEvidence = sampled.envelope.result.evidence as readonly {
-      message_id: string;
       message_ref: string;
     }[];
     assert.equal(
       sampledEvidence.some((sample) =>
-        discovered.some((item) => item.message_id === sample.message_id),
+        discovered.some((item) => item.message_ref === sample.message_ref),
       ),
       false,
     );
@@ -130,5 +130,101 @@ test("equivalent repeated calls cannot reset cumulative disclosure", () => {
     const state = service.queryState(queryRef);
     assert.ok(state.disclosure.bytes <= RESULT_LIMITS.cumulativeQueryBytes);
     assert.ok(state.disclosure.remainingBytes < RESULT_LIMITS.measureBytes);
+  });
+});
+
+test("versioned outputs validate against their tool-specific contracts", () => {
+  withService((service) => {
+    const measurement = service.measureMessages(QUERY);
+    assert.ok(measureOutputSchema.safeParse(measurement.envelope).success);
+    assert.equal(measurement.envelope.schema_version, "2");
+    const discovery = service.discoverMessages(QUERY, 2);
+    assert.ok(discoverOutputSchema.safeParse(discovery.envelope).success);
+    assert.equal(discovery.envelope.result.selection !== undefined, true);
+    const first = (discovery.envelope.result.evidence as { message_ref: string }[])[0]!;
+    assert.equal("message_id" in first, false);
+    assert.equal("rank" in first, false);
+    const sampled = service.sampleMessages(discovery.envelope.query_ref, "uniform", "contract", 2);
+    assert.ok(sampleOutputSchema.safeParse(sampled.envelope).success);
+    const context = service.expandMessageContext(discovery.envelope.query_ref, first.message_ref, 1);
+    assert.ok(expandContextOutputSchema.safeParse(context.envelope).success);
+    const exported = service.exportMessages(discovery.envelope.query_ref);
+    assert.ok(exportOutputSchema.safeParse(exported.envelope).success);
+    assert.equal(discoverOutputSchema.safeParse(sampled.envelope).success, false);
+    for (const result of [measurement, discovery, sampled, context, exported]) {
+      assert.equal(serializedBytes(result.mcpResult), result.envelope.disclosure.response_bytes);
+    }
+  });
+});
+
+test("zero-match discovery is exact, empty, and offers no absent anchor", () => {
+  withService((service) => {
+    const result = service.discoverMessages({
+      clauses: [{ match: "literal", role: "canonical", text: "absentterm" }], combine: "all",
+    });
+    assert.equal(result.envelope.outcome, "complete");
+    assert.equal(result.envelope.truncated, false);
+    assert.equal(result.envelope.omitted, 0);
+    assert.deepEqual(result.envelope.next_actions, []);
+    assert.deepEqual(result.envelope.result.evidence, []);
+    assert.deepEqual(result.envelope.result.selection, { kind: "ranked_exact_text_and_thread_diverse", exhaustive: true, stop_reasons: [] });
+  });
+});
+
+test("aggregate repeat counts do not authorize undisclosed group members", () => {
+  withTestCorpus([{ text: "OpenAI concern" }, { text: "OpenAI concern" }], (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const result = service.discoverMessages(QUERY);
+      const evidence = result.envelope.result.evidence as { message_ref: string; same_text_matches: { messages: number } }[];
+      assert.equal(evidence.length, 1);
+      assert.equal(evidence[0]?.same_text_matches.messages, 2);
+      assert.throws(() => service.expandMessageContext(result.envelope.query_ref,
+        `corpus://${service.corpusVersion}/messages/message-1`), /only be expanded from evidence disclosed/u);
+    } finally { service.close(); }
+  });
+});
+
+test("byte fitting reports the final transmitted selection and protects omitted anchors", () => {
+  withTestCorpus(Array.from({ length: 8 }, (_, index) => ({
+    text: `OpenAI synthetic statement number ${index}`,
+    senderOrganization: "😀".repeat(500),
+  })), (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const result = service.discoverMessages(QUERY);
+      const evidence = result.envelope.result.evidence as { message_ref: string }[];
+      const selection = result.envelope.result.selection as { exhaustive: boolean; stop_reasons: string[] };
+      assert.ok(evidence.length > 0 && evidence.length < 8);
+      assert.equal(result.envelope.omitted, 8 - evidence.length);
+      assert.equal(selection.exhaustive, false);
+      assert.ok(selection.stop_reasons.includes("response_byte_limit"));
+      assert.equal(result.bytes, serializedBytes(result.mcpResult));
+      assert.ok(result.bytes <= RESULT_LIMITS.responseBytes);
+      assert.equal(service.queryState(result.envelope.query_ref).disclosure.messageCount, evidence.length);
+    } finally { service.close(); }
+  });
+});
+
+test("context fitting preserves the root and anchor and reports removed neighbors", () => {
+  withTestCorpus([
+    { messageId: "root", text: "Synthetic discussion root" },
+    ...Array.from({ length: 12 }, (_, index) => ({
+      messageId: `reply-${index}`, text: index === 6 ? "OpenAI anchor" : "😀".repeat(450),
+      threadRootMessageId: "root", replyToMessageId: "root",
+    })),
+  ], (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const discovery = service.discoverMessages(QUERY);
+      const reference = (discovery.envelope.result.evidence as { message_ref: string }[])[0]!.message_ref;
+      const result = service.expandMessageContext(discovery.envelope.query_ref, reference, 20);
+      const payload = result.envelope.result as { messages: { message_id: string }[]; clipped_before: boolean; clipped_after: boolean };
+      assert.ok(payload.messages.some((message) => message.message_id === "root"));
+      assert.ok(payload.messages.some((message) => message.message_id === "reply-6"));
+      assert.equal(result.envelope.omitted, 13 - payload.messages.length);
+      assert.ok(payload.clipped_before || payload.clipped_after);
+      assert.ok(result.bytes <= RESULT_LIMITS.expandContextBytes);
+    } finally { service.close(); }
   });
 });

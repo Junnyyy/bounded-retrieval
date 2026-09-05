@@ -10,11 +10,15 @@ import { BoundedRetrievalService } from "../service/bounded-retrieval-service.ts
 import type { EncodedResult } from "../service/result-envelope.ts";
 import {
   discoverInputSchema,
+  discoverOutputSchema,
   expandContextInputSchema,
+  expandContextOutputSchema,
   exportInputSchema,
+  exportOutputSchema,
   measureInputSchema,
-  resultEnvelopeSchema,
+  measureOutputSchema,
   sampleInputSchema,
+  sampleOutputSchema,
   type StructuredQueryInput,
 } from "./schemas.ts";
 
@@ -69,7 +73,7 @@ function errorResult(error: unknown) {
   return {
     content: [
       {
-        text: `${message}. Refine the request or start a narrower investigation.`,
+        text: message,
         type: "text" as const,
       },
     ],
@@ -107,7 +111,7 @@ export function createBoundedRetrievalServer(options: {
       description:
         "Measure exact lexical occurrences, matching messages, threads, conversations, provenance, and time distribution without returning message text. Use when the user asks how often, how many, or where matches are concentrated. Do not use for qualitative evidence.",
       inputSchema: measureInputSchema,
-      outputSchema: resultEnvelopeSchema,
+      outputSchema: measureOutputSchema,
       title: "Measure messages",
     },
     async ({ query }) => safely(() => service.measureMessages(toStructuredQuery(query))),
@@ -118,9 +122,9 @@ export function createBoundedRetrievalServer(options: {
     {
       annotations: { readOnlyHint: true, openWorldHint: false },
       description:
-        "Start a bounded qualitative investigation. Returns a compact result-set shape, ranked evidence diversified by thread, stable message references, and a process-scoped query_ref. Use for questions about themes, concerns, or representative evidence. Do not use to retrieve every match.",
+        "Discover ranked lexical evidence, diversified by exact full text and thread. Returns counts, time distribution, citations, and query_ref. same_text_matches counts identical text across the exact query population; the cited sender is one representative. Lexical rank and text diversity do not establish theme coverage. Refine terms or sample when the evidence does not address the question.",
       inputSchema: discoverInputSchema,
-      outputSchema: resultEnvelopeSchema,
+      outputSchema: discoverOutputSchema,
       title: "Discover messages",
     },
     async ({ query, limit }) =>
@@ -132,9 +136,9 @@ export function createBoundedRetrievalServer(options: {
     {
       annotations: { readOnlyHint: true, openWorldHint: false },
       description:
-        "Draw a deterministic bounded sample of previously undisclosed messages from an existing query_ref. Use to test whether top-ranked discovery evidence is representative across time or conversations. This is not pagination and never returns the full result set.",
+        "Sample previously undisclosed messages from a query_ref. Uniform gives seeded message selection; across_time and across_conversations balance seeded strata. Results state the eligible population and covered strata. Use to investigate ranked-evidence bias, not as pagination. A small sample does not establish theme frequencies or completeness.",
       inputSchema: sampleInputSchema,
-      outputSchema: resultEnvelopeSchema,
+      outputSchema: sampleOutputSchema,
       title: "Sample messages",
     },
     async ({ limit, query_ref, seed, strategy }) =>
@@ -155,7 +159,7 @@ export function createBoundedRetrievalServer(options: {
       description:
         "Expand one message_ref already disclosed by the same query_ref into bounded chronological context. Returns a Slack thread when one exists, otherwise a surrounding channel or direct-message window. Use only after discovery or sampling identifies an anchor.",
       inputSchema: expandContextInputSchema,
-      outputSchema: resultEnvelopeSchema,
+      outputSchema: expandContextOutputSchema,
       title: "Expand message context",
     },
     async ({ limit, message_ref, query_ref }) =>
@@ -176,7 +180,7 @@ export function createBoundedRetrievalServer(options: {
       description:
         "Materialize every exact match for an existing query_ref as a local JSONL artifact. Returns only artifact metadata, never message rows. Use only when the user genuinely requests exhaustive output outside model context.",
       inputSchema: exportInputSchema,
-      outputSchema: resultEnvelopeSchema,
+      outputSchema: exportOutputSchema,
       title: "Export messages",
     },
     async ({ query_ref }) => safely(() => service.exportMessages(query_ref)),

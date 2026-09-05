@@ -37,6 +37,15 @@ test("tracks repeated response bytes and unique disclosed messages", () => {
   assert.equal(registry.hasDisclosedMessage(reference.queryRef, "message-1"), true);
 });
 
+test("all/any on one normalized clause cannot create a fresh disclosure budget", () => {
+  const registry = new QueryRegistry("corpus-test");
+  const first = registry.register(QUERY);
+  registry.recordDisclosure(first.queryRef, 2_000);
+  const equivalent = registry.register({ ...QUERY, combine: "all", clauses: [...QUERY.clauses, ...QUERY.clauses] });
+  assert.equal(equivalent.queryRef, first.queryRef);
+  assert.equal(equivalent.disclosure.bytes, 2_000);
+});
+
 test("fails closed when cumulative disclosure would be exceeded", () => {
   const registry = new QueryRegistry("corpus-test");
   const reference = registry.register(QUERY);

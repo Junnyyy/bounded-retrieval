@@ -1,0 +1,48 @@
+{
+  "status": "Measured schema-v2 formatting checkpoint before duplicate-aware selection.",
+  "corpus": "corpus-4f6e4a3f4bb9439c",
+  "node": "v24.20.0",
+  "note": "No model called. Compared against corrected v1 baseline with the same selection. Timing was removed from v2 tool output and remains in evaluation. Wire totals include structuredContent and compatibility text.",
+  "frequency": {
+    "beforeBytes": 4084,
+    "afterBytes": 4086
+  },
+  "experiments": [
+    {
+      "name": "ranked",
+      "calls": 1,
+      "beforeBytes": 15444,
+      "afterBytes": 12598,
+      "reductionPercent": 18.43,
+      "categories": [],
+      "identicalQualityAndSupportingReferences": true
+    },
+    {
+      "name": "ranked_then_sample",
+      "calls": 3,
+      "beforeBytes": 35688,
+      "afterBytes": 29568,
+      "reductionPercent": 17.15,
+      "categories": [
+        "data_privacy",
+        "pricing",
+        "reliability"
+      ],
+      "identicalQualityAndSupportingReferences": true
+    },
+    {
+      "name": "refined_lexical",
+      "calls": 3,
+      "beforeBytes": 45564,
+      "afterBytes": 37082,
+      "reductionPercent": 18.62,
+      "categories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "vendor_lock_in"
+      ],
+      "identicalQualityAndSupportingReferences": true
+    }
+  ]
+}

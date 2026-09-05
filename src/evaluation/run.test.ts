@@ -35,6 +35,14 @@ test("records a bounded comparison against the naive full-row result", () => {
     assert.ok(record.scenarios.frequency.naive.resultBytes > 16 * 1_024);
     assert.ok(record.scenarios.frequency.bounded.peakResultBytes <= 4 * 1_024);
     assert.ok(record.scenarios.clientConcerns.bounded.calls.length > 1);
+    assert.equal(record.discoveryExperiments.length, 3);
+    for (const experiment of record.discoveryExperiments) {
+      assert.equal(experiment.totalBytes, experiment.calls.reduce((total, call) => total + call.bytes, 0));
+      assert.ok(experiment.queryBudgetsWithinCap);
+      assert.equal(experiment.quality.supportedCategories.length + experiment.quality.missingCategories.length,
+        generated.groundTruth.concerns.length);
+    }
+    assert.equal(record.discoveryExperiments.find((item) => item.name === "refined_lexical")?.quality.allCategoriesSupported, true);
     assert.ok(existsSync(outputPath));
   } finally {
     rmSync(directory, { force: true, recursive: true });

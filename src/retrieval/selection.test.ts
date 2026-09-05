@@ -10,6 +10,7 @@ import { openCorpusDatabase } from "../database/corpus.ts";
 import { expandMessageContext } from "./context.ts";
 import { discoverMessages } from "./discover.ts";
 import { sampleMessages } from "./sample.ts";
+import { withTestCorpus } from "../testing/corpus.ts";
 
 const PROFILE: CorpusProfile = {
   days: 7,
@@ -97,6 +98,38 @@ test("samples deterministically and excludes disclosed messages", () => {
   });
 });
 
+test("seeded sampling reaches the whole population rather than the first strata", () => {
+  withCorpus((database) => {
+    for (const strategy of ["uniform", "across_time", "across_conversations"] as const) {
+      const days = new Set<string>();
+      const conversations = new Set<string>();
+      for (let seed = 0; seed < 32; seed += 1) {
+        const result = sampleMessages(database, OPENAI_QUERY, {
+          limit: 2, seed: `coverage-${seed}`, strategy,
+        });
+        assert.equal(result.outcome, "complete");
+        assert.equal(result.evidence.length, 2);
+        for (const item of result.evidence) {
+          days.add(item.sentAt.slice(0, 10));
+          conversations.add(item.conversation.id);
+        }
+      }
+      assert.ok(days.size >= 6, `${strategy} covered only ${days.size} dates`);
+      assert.ok(conversations.size >= 8, `${strategy} covered only ${conversations.size} conversations`);
+    }
+  });
+});
+
+test("sampling reports incomplete work when a candidate limit interrupts the scan", () => {
+  withCorpus((database) => {
+    const result = sampleMessages(database, OPENAI_QUERY, {
+      executionLimits: { maxCandidateRows: 1, maxMilliseconds: 5_000 },
+      limit: 8, seed: "interrupted", strategy: "uniform",
+    });
+    assert.equal(result.outcome, "incomplete");
+  });
+});
+
 test("expands threaded and unthreaded messages within the hard item cap", () => {
   withCorpus((database) => {
     const threaded = database
@@ -125,6 +158,11 @@ test("expands threaded and unthreaded messages within the hard item cap", () => 
         (message) => message.messageId === threaded.message_id,
       ),
     );
+    const anchorOnly = expandMessageContext(database, threaded.message_id, 1);
+    assert.equal(anchorOnly.messages.length, 1);
+    assert.equal(anchorOnly.messages[0]?.messageId, threaded.message_id);
+    assert.ok(anchorOnly.totalMessages >= 2);
+    assert.equal(anchorOnly.clippedBefore, true);
 
     const conversationContext = expandMessageContext(
       database,
@@ -139,5 +177,62 @@ test("expands threaded and unthreaded messages within the hard item cap", () => 
         .map((message) => message.sentAt)
         .toSorted(),
     );
+  });
+});
+
+test("discovery groups full text and counts all sources, including earlier skipped representatives", () => {
+  withTestCorpus([
+    { messageId: "root", text: "OpenAI OpenAI" },
+    { text: "OpenAI needs a much longer explanatory statement", threadRootMessageId: "root", replyToMessageId: "root" },
+    { text: "OpenAI needs a much longer explanatory statement" },
+  ], (database) => {
+    const result = discoverMessages(database, OPENAI_QUERY);
+    assert.equal(result.evidence.length, 2);
+    const group = result.evidence.find((item) => item.snippet.includes("explanatory"));
+    assert.equal(group?.messageId, "message-2");
+    assert.deepEqual(group.sameTextMatches, { messages: 2, senders: 2, conversations: 2, threads: 2 });
+  });
+});
+
+test("distinct full messages remain distinct when their clipped excerpts coincide", () => {
+  const prefix = `OpenAI ${"😀".repeat(250)}`;
+  withTestCorpus([{ text: `${prefix} first ending` }, { text: `${prefix} different ending` }], (database) => {
+    const result = discoverMessages(database, OPENAI_QUERY);
+    assert.equal(result.evidence.length, 2);
+    assert.equal(result.evidence[0]?.snippet, result.evidence[1]?.snippet);
+    assert.ok(result.evidence.every((item) => item.snippetClipped && item.sameTextMatches?.messages === 1));
+  });
+});
+
+test("a repeated dominant statement cannot hide a distinct late-period concern", () => {
+  withTestCorpus([
+    ...Array.from({ length: 50 }, () => ({ text: "OpenAI mentioned in review" })),
+    { text: "OpenAI outages would prevent us from serving customers." },
+  ], (database) => {
+    const result = discoverMessages(database, OPENAI_QUERY);
+    assert.equal(result.evidence.length, 2);
+    assert.ok(result.evidence.some((item) => item.messageId === "message-50"));
+    assert.equal(result.shape.outcome, "complete");
+  });
+});
+
+test("interrupted group measurement never exposes partial multiplicities as exact", () => {
+  withTestCorpus(Array.from({ length: 20 }, () => ({ text: "OpenAI repeated evidence" })), (database) => {
+    const result = discoverMessages(database, OPENAI_QUERY, {
+      limit: 1, executionLimits: { maxCandidateRows: 3, maxMilliseconds: 5_000 },
+    });
+    assert.equal(result.shape.outcome, "incomplete");
+    assert.equal(result.evidence[0]?.sameTextMatches, null);
+  });
+});
+
+test("uniform sampling can return multiple messages from one thread", () => {
+  withTestCorpus([
+    { messageId: "root" },
+    ...Array.from({ length: 9 }, () => ({ threadRootMessageId: "root", replyToMessageId: "root" })),
+  ], (database) => {
+    const sample = sampleMessages(database, OPENAI_QUERY, { limit: 8, seed: "same-thread", strategy: "uniform" });
+    assert.equal(sample.evidence.length, 8);
+    assert.equal(sample.populationMessages, 10);
   });
 });

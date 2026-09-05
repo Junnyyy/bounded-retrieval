@@ -1,7 +1,7 @@
 import { performance } from "node:perf_hooks";
 import type { DatabaseSync } from "node:sqlite";
 
-import { threadIdentity } from "../domain/message.ts";
+import { threadIdentity, type MessageRecord } from "../domain/message.ts";
 import { iterateCandidates } from "./candidates.ts";
 import {
   compileQueryClauses,
@@ -81,6 +81,7 @@ export function measureMessages(
   database: DatabaseSync,
   structuredQuery: StructuredQuery,
   limits: ExecutionLimits = DEFAULT_EXECUTION_LIMITS,
+  onMatch?: (message: MessageRecord) => void,
 ): MeasureResult {
   const query = normalizeQuery(structuredQuery);
   const clauses = compileQueryClauses(query);
@@ -119,6 +120,7 @@ export function measureMessages(
     if (matches === null) {
       continue;
     }
+    onMatch?.(candidate.message);
 
     const threadId = threadIdentity(candidate.message);
     overall.messages.add(candidate.message.messageId);

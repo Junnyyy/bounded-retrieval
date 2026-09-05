@@ -52,13 +52,14 @@ export class BoundedRetrievalService {
     const timeBuckets =
       measured.outcome === "complete" ? [...measured.timeBuckets] : [];
     let shrunk = false;
+    const stopReasons = new Set<string>(measured.outcome === "incomplete" ? [measured.reason] : []);
 
     return finalizeResult({
       maximumBytes: RESULT_LIMITS.measureBytes,
       messageIds: () => [],
       nextActions:
         measured.outcome === "complete"
-          ? ["Use discover_messages with the same structured query for evidence."]
+          ? []
           : ["Narrow the query or time range before measuring again."],
       omitted: () =>
         measured.outcome === "complete"
@@ -72,23 +73,24 @@ export class BoundedRetrievalService {
           measured.outcome === "complete"
             ? {
                 candidate_rows_examined: measured.candidateRowsExamined,
-                duration_ms: Math.round(measured.durationMilliseconds * 100) / 100,
                 metrics: measured.metrics,
                 normalized_query: serializeQuery(measured.query),
                 provenance: measured.provenance,
                 time_buckets: timeBuckets,
+                stop_reasons: [...stopReasons],
               }
             : {
                 candidate_rows_examined: measured.candidateRowsExamined,
-                duration_ms: Math.round(measured.durationMilliseconds * 100) / 100,
                 normalized_query: serializeQuery(measured.query),
                 reason: measured.reason,
+                stop_reasons: [...stopReasons],
               },
         ),
       resultKind: "measurement",
-      shrink: () => {
+      shrink: (reasons) => {
         if (timeBuckets.length === 0) return false;
         timeBuckets.pop();
+        for (const reason of reasons) stopReasons.add(reason);
         shrunk = true;
         return true;
       },
@@ -107,30 +109,36 @@ export class BoundedRetrievalService {
         ? discovery.shape.metrics.messages
         : null;
     let shrunk = false;
+    const stopReasons = new Set<string>();
+    if (discovery.stopReason !== null && !(discovery.stopReason === "item_limit" && totalMessages === evidence.length)) {
+      stopReasons.add(discovery.stopReason);
+    }
+    if (discovery.shape.outcome === "incomplete") stopReasons.add(discovery.shape.reason);
+    const incomplete = discovery.shape.outcome === "incomplete" ||
+      discovery.stopReason === "candidate_limit" || discovery.stopReason === "time_limit";
 
     return finalizeResult({
       maximumBytes: RESULT_LIMITS.responseBytes,
       messageIds: () => evidence.map((item) => item.messageId),
-      nextActions: [
-        "Use sample_messages with query_ref to inspect another distribution.",
-        "Use expand_message_context with query_ref and a returned message_ref.",
-        "Use export_messages with query_ref for exhaustive output.",
-      ],
+      nextActions: () => incomplete
+        ? ["Narrow the query or time range; the scan did not complete."]
+        : evidence.some((item) => item.snippetClipped)
+          ? ["A snippet is clipped; expand its message_ref if the missing text matters."]
+          : [],
       omitted: () =>
         totalMessages === null ? null : Math.max(0, totalMessages - evidence.length),
-      outcome:
-        discovery.shape.outcome === "complete" ? "complete" : "incomplete",
+      outcome: incomplete ? "incomplete" : "complete",
       queryRef: reference.queryRef,
       registry: this.#registry,
       result: () =>
         asRecord({
           candidate_rows_examined: discovery.candidateRowsExamined,
-          duration_ms: Math.round(discovery.durationMilliseconds * 100) / 100,
           evidence: evidence.map(serializeEvidence),
           normalized_query: serializeQuery(discovery.query),
           selection: {
-            complete: discovery.selectionComplete,
-            kind: "ranked_thread_diverse",
+            exhaustive: !incomplete && totalMessages === evidence.length,
+            kind: "ranked_exact_text_and_thread_diverse",
+            stop_reasons: [...stopReasons, ...(evidence.some((item) => item.snippetClipped) ? ["text_clipped"] : [])],
           },
           shape:
             discovery.shape.outcome === "complete"
@@ -141,15 +149,17 @@ export class BoundedRetrievalService {
               : { reason: discovery.shape.reason },
         }),
       resultKind: "discovery",
-      shrink: () => {
+      shrink: (reasons) => {
         if (evidence.length <= 1) return false;
         evidence.pop();
+        for (const reason of reasons) stopReasons.add(reason);
         shrunk = true;
         return true;
       },
       truncated: () =>
         shrunk ||
-        !discovery.selectionComplete ||
+        incomplete ||
+        evidence.some((item) => item.snippetClipped) ||
         (totalMessages !== null && totalMessages > evidence.length),
     });
   }
@@ -169,34 +179,49 @@ export class BoundedRetrievalService {
     });
     const evidence = [...sampled.evidence];
     let shrunk = false;
+    const stopReasons = new Set<string>(sampled.reason === null ? [] : [sampled.reason]);
+    if (sampled.populationMessages > evidence.length) stopReasons.add("item_limit");
 
     return finalizeResult({
       maximumBytes: RESULT_LIMITS.responseBytes,
       messageIds: () => evidence.map((item) => item.messageId),
-      nextActions: [
-        "Use expand_message_context on a returned message_ref.",
-        "Refine the structured query if this sample changes the investigation.",
-        "Use export_messages for exhaustive output.",
-      ],
-      omitted: () => null,
+      nextActions: () => sampled.outcome === "incomplete"
+        ? ["Narrow the query; this sample was selected from an incomplete scan."]
+        : evidence.some((item) => item.snippetClipped)
+          ? ["A snippet is clipped; expand its message_ref if the missing text matters."]
+          : [],
+      omitted: () => sampled.outcome === "complete" ? sampled.populationMessages - evidence.length : null,
       outcome: sampled.outcome,
       queryRef,
       registry: this.#registry,
       result: () =>
         asRecord({
           candidate_rows_examined: sampled.candidateRowsExamined,
-          duration_ms: Math.round(sampled.durationMilliseconds * 100) / 100,
           evidence: evidence.map(serializeEvidence),
-          selection: { kind: strategy, seed },
+          population: {
+            unit: "message",
+            excludes_disclosed: true,
+            messages: sampled.outcome === "complete" ? sampled.populationMessages : null,
+            strata: sampled.outcome === "complete" ? sampled.populationStrata : null,
+          },
+          selection: {
+            kind: strategy,
+            seed,
+            exhaustive: sampled.outcome === "complete" && sampled.populationMessages === evidence.length,
+            returned_strata: new Set(evidence.map((item) => strategy === "across_time"
+              ? item.sentAt.slice(0, 10) : strategy === "across_conversations" ? item.conversation.id : "all")).size,
+            stop_reasons: [...stopReasons, ...(evidence.some((item) => item.snippetClipped) ? ["text_clipped"] : [])],
+          },
         }),
       resultKind: "sample",
-      shrink: () => {
+      shrink: (reasons) => {
         if (evidence.length <= 1) return false;
         evidence.pop();
+        for (const reason of reasons) stopReasons.add(reason);
         shrunk = true;
         return true;
       },
-      truncated: () => shrunk || sampled.outcome === "incomplete",
+      truncated: () => shrunk || sampled.outcome === "incomplete" || sampled.populationMessages > evidence.length || evidence.some((item) => item.snippetClipped),
     });
   }
 
@@ -214,43 +239,49 @@ export class BoundedRetrievalService {
     }
     const context = expandMessageContext(this.#database, messageId, requestedLimit);
     const messages = [...context.messages];
+    const anchorIndex = context.messages.findIndex((message) => message.messageId === messageId);
     let shrunk = false;
+    const stopReasons = new Set<string>();
+    if (context.clippedBefore || context.clippedAfter) stopReasons.add("context_window");
 
     return finalizeResult({
       maximumBytes: RESULT_LIMITS.expandContextBytes,
       messageIds: () => messages.map((message) => message.messageId),
-      nextActions: [
-        "Use another disclosed message_ref to inspect a different context.",
-        "Use sample_messages to broaden the evidence distribution.",
-      ],
-      omitted: () =>
-        context.messages.length - messages.length +
-        Number(context.clippedBefore) +
-        Number(context.clippedAfter),
+      nextActions: [],
+      omitted: () => context.totalMessages - messages.length,
       outcome: "complete",
       queryRef,
       registry: this.#registry,
       result: () =>
         asRecord({
           anchor_message_id: context.anchorMessageId,
-          clipped_after: context.clippedAfter,
-          clipped_before: context.clippedBefore,
+          clipped_after: context.clippedAfter || context.messages.slice(anchorIndex + 1).some((message) => !messages.includes(message)),
+          clipped_before: context.clippedBefore || context.messages.slice(0, anchorIndex).some((message) => !messages.includes(message)),
           context_kind: context.contextKind,
           messages: messages.map(serializeContextMessage),
+          stop_reasons: [...stopReasons, ...(messages.some((message) => message.textClipped) ? ["text_clipped"] : [])],
         }),
       resultKind: "message_context",
-      shrink: () => {
+      shrink: (reasons) => {
         if (messages.length <= 1) return false;
-        const removableIndex = messages.findIndex(
-          (message) => message.messageId !== messageId,
-        );
+        // Keep the anchor and thread root longest; discard distant neighbors
+        // before the context that identifies what the reply is responding to.
+        let removableIndex = -1;
+        let farthest = -1;
+        for (const [index, message] of messages.entries()) {
+          if (message.messageId === messageId || message.messageId === context.rootMessageId) continue;
+          const distance = Math.abs(context.messages.indexOf(message) - anchorIndex);
+          if (distance > farthest) { farthest = distance; removableIndex = index; }
+        }
+        if (removableIndex === -1) removableIndex = messages.findIndex((message) => message.messageId !== messageId);
         if (removableIndex === -1) return false;
         messages.splice(removableIndex, 1);
+        for (const reason of reasons) stopReasons.add(reason);
         shrunk = true;
         return true;
       },
       truncated: () =>
-        shrunk || context.clippedBefore || context.clippedAfter,
+        shrunk || context.clippedBefore || context.clippedAfter || messages.some((message) => message.textClipped),
     });
   }
 

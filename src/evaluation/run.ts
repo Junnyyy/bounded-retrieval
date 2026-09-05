@@ -8,6 +8,8 @@ import type { StructuredQuery } from "../retrieval/query.ts";
 import { BoundedRetrievalService } from "../service/bounded-retrieval-service.ts";
 import type { EncodedResult } from "../service/result-envelope.ts";
 import { naiveRegexSearch } from "./naive-search.ts";
+import { runDiscoveryExperiments } from "./discovery-experiments.ts";
+import { scoreEvidence } from "./evidence-quality.ts";
 
 const OPENAI_PATTERN = /(?<![\p{L}\p{N}])OpenAI(?![\p{L}\p{N}])/giu;
 
@@ -25,6 +27,7 @@ export interface EvaluationRecord {
     readonly everyBoundedResultWithinCap: boolean;
     readonly frequencyResultReductionAtLeast90Percent: boolean;
     readonly queryBudgetWithinCap: boolean;
+    readonly refinedConcernCoverageComplete: boolean;
   };
   readonly corpus: {
     readonly messageCount: number;
@@ -37,18 +40,21 @@ export interface EvaluationRecord {
     readonly mode: "deterministic";
     readonly note: string;
   };
+  readonly discoveryExperiments: ReturnType<typeof runDiscoveryExperiments>;
   readonly generatedAt: string;
   readonly runtime: {
     readonly node: string;
   };
   readonly scenarios: {
     readonly clientConcerns: ScenarioRecord;
+    readonly legacyClientConcerns: ScenarioRecord;
     readonly frequency: ScenarioRecord;
   };
-  readonly schemaVersion: "1";
+  readonly schemaVersion: "2";
 }
 
 interface ScenarioRecord {
+  readonly quality?: ReturnType<typeof scoreEvidence>;
   readonly bounded: {
     readonly calls: readonly ToolCallRecord[];
     readonly peakResultBytes: number;
@@ -190,7 +196,7 @@ export function runDeterministicEvaluation(options: {
     naive,
     [asToolCall("measure_messages", measured)],
   );
-  const clientConcerns = scenario(
+  const legacyClientConcerns = scenario(
     "What concerns did clients raise about OpenAI?",
     naive,
     [
@@ -199,25 +205,39 @@ export function runDeterministicEvaluation(options: {
       asToolCall("expand_message_context", expanded),
     ],
   );
-  const measuredPayload = measured.envelope.result as {
-    readonly metrics?: { readonly messages?: unknown; readonly occurrences?: unknown };
+  const discoveryExperiments = runDiscoveryExperiments(options);
+  const refined = discoveryExperiments.find((experiment) => experiment.name === "refined_lexical")!;
+  const clientConcerns = {
+    ...scenario("What concerns did clients raise about OpenAI? (hand-authored lexical refinements)", naive,
+      refined.calls.map((call) => ({ bytes: call.bytes, name: call.tool, outcome: call.outcome, queryRef: call.queryRef, resultKind: "discovery" }))),
+    quality: refined.quality,
   };
-  const calls = [...frequency.bounded.calls, ...clientConcerns.bounded.calls];
+  const measuredPayload = measured.envelope.result as {
+    readonly metrics?: { readonly messages?: unknown; readonly occurrences?: unknown; readonly threads?: unknown; readonly conversations?: unknown };
+  };
+  const calls = [...frequency.bounded.calls, ...legacyClientConcerns.bounded.calls,
+    ...discoveryExperiments.flatMap((experiment) => experiment.calls.map((call) => ({
+      bytes: call.bytes, name: call.tool, outcome: call.outcome, queryRef: call.queryRef, resultKind: "discovery_experiment",
+    })))];
   const record: EvaluationRecord = {
     assertions: {
       exactCountMatchesGroundTruth:
         measuredPayload.metrics?.messages ===
           options.groundTruth.openAi.matchingMessageCount &&
         measuredPayload.metrics.occurrences ===
-          options.groundTruth.openAi.occurrenceCount,
+          options.groundTruth.openAi.occurrenceCount &&
+        measuredPayload.metrics.threads === options.groundTruth.openAi.distinctThreads &&
+        measuredPayload.metrics.conversations === options.groundTruth.openAi.distinctConversations,
       everyBoundedResultWithinCap: calls.every(
-        (call) => call.bytes <= RESULT_LIMITS.responseBytes,
+        (call) => call.bytes <= (call.name === "measure_messages" ? RESULT_LIMITS.measureBytes
+          : call.name === "expand_message_context" ? RESULT_LIMITS.expandContextBytes : RESULT_LIMITS.responseBytes),
       ),
       frequencyResultReductionAtLeast90Percent:
         frequency.reductionPercent >= 90,
       queryBudgetWithinCap:
-        clientConcerns.bounded.totalResultBytes <=
-        RESULT_LIMITS.cumulativeQueryBytes,
+        legacyClientConcerns.bounded.totalResultBytes <= RESULT_LIMITS.cumulativeQueryBytes &&
+        discoveryExperiments.every((experiment) => experiment.queryBudgetsWithinCap),
+      refinedConcernCoverageComplete: refined.quality.allCategoriesSupported,
     },
     corpus: {
       messageCount: metadata.messageCount,
@@ -230,10 +250,11 @@ export function runDeterministicEvaluation(options: {
       mode: "deterministic",
       note: "No model was called. This isolates retrieval correctness and full MCP-compatible result bytes; live FX runs are recorded separately.",
     },
+    discoveryExperiments,
     generatedAt: new Date().toISOString(),
     runtime: { node: process.version },
-    scenarios: { clientConcerns, frequency },
-    schemaVersion: "1",
+    scenarios: { clientConcerns, legacyClientConcerns: { ...legacyClientConcerns, quality: scoreEvidence([discovered, sampled, expanded], options.groundTruth) }, frequency },
+    schemaVersion: "2",
   };
 
   mkdirSync(dirname(resolve(options.outputPath)), { recursive: true });
