@@ -88,7 +88,7 @@ export function discoverMessages(
 
   const shape = measureMessages(database, query, executionLimits);
   return {
-    candidateRowsExamined,
+    candidateRowsExamined: candidateRowsExamined + shape.candidateRowsExamined,
     durationMilliseconds: performance.now() - startedAt,
     evidence,
     query,

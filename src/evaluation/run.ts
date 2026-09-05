@@ -8,6 +8,8 @@ import type { StructuredQuery } from "../retrieval/query.ts";
 import { BoundedRetrievalService } from "../service/bounded-retrieval-service.ts";
 import type { EncodedResult } from "../service/result-envelope.ts";
 import { naiveRegexSearch } from "./naive-search.ts";
+import { runDiscoveryExperiments } from "./discovery-experiments.ts";
+import { scoreEvidence } from "./evidence-quality.ts";
 
 const OPENAI_PATTERN = /(?<![\p{L}\p{N}])OpenAI(?![\p{L}\p{N}])/giu;
 
@@ -37,6 +39,7 @@ export interface EvaluationRecord {
     readonly mode: "deterministic";
     readonly note: string;
   };
+  readonly discoveryExperiments: ReturnType<typeof runDiscoveryExperiments>;
   readonly generatedAt: string;
   readonly runtime: {
     readonly node: string;
@@ -45,10 +48,11 @@ export interface EvaluationRecord {
     readonly clientConcerns: ScenarioRecord;
     readonly frequency: ScenarioRecord;
   };
-  readonly schemaVersion: "1";
+  readonly schemaVersion: "2";
 }
 
 interface ScenarioRecord {
+  readonly quality?: ReturnType<typeof scoreEvidence>;
   readonly bounded: {
     readonly calls: readonly ToolCallRecord[];
     readonly peakResultBytes: number;
@@ -200,7 +204,7 @@ export function runDeterministicEvaluation(options: {
     ],
   );
   const measuredPayload = measured.envelope.result as {
-    readonly metrics?: { readonly messages?: unknown; readonly occurrences?: unknown };
+    readonly metrics?: { readonly messages?: unknown; readonly occurrences?: unknown; readonly threads?: unknown; readonly conversations?: unknown };
   };
   const calls = [...frequency.bounded.calls, ...clientConcerns.bounded.calls];
   const record: EvaluationRecord = {
@@ -209,7 +213,9 @@ export function runDeterministicEvaluation(options: {
         measuredPayload.metrics?.messages ===
           options.groundTruth.openAi.matchingMessageCount &&
         measuredPayload.metrics.occurrences ===
-          options.groundTruth.openAi.occurrenceCount,
+          options.groundTruth.openAi.occurrenceCount &&
+        measuredPayload.metrics.threads === options.groundTruth.openAi.distinctThreads &&
+        measuredPayload.metrics.conversations === options.groundTruth.openAi.distinctConversations,
       everyBoundedResultWithinCap: calls.every(
         (call) => call.bytes <= RESULT_LIMITS.responseBytes,
       ),
@@ -230,10 +236,11 @@ export function runDeterministicEvaluation(options: {
       mode: "deterministic",
       note: "No model was called. This isolates retrieval correctness and full MCP-compatible result bytes; live FX runs are recorded separately.",
     },
+    discoveryExperiments: runDiscoveryExperiments(options),
     generatedAt: new Date().toISOString(),
     runtime: { node: process.version },
-    scenarios: { clientConcerns, frequency },
-    schemaVersion: "1",
+    scenarios: { clientConcerns: { ...clientConcerns, quality: scoreEvidence([discovered, sampled, expanded], options.groundTruth) }, frequency },
+    schemaVersion: "2",
   };
 
   mkdirSync(dirname(resolve(options.outputPath)), { recursive: true });
