@@ -128,9 +128,11 @@ To reproduce the default deterministic run, use the repository's `pnpm check` an
 ## Further work considered
 
 The measured improvement is in response bytes and evidence quality; these
-comparisons do not reduce the number of calls. Actual model input tokens,
-tool-definition overhead, tool-choice quality, and final answer quality require
-later live harness evaluation. No model or provider call was made here.
+deterministic comparisons do not reduce the number of calls or invoke a model.
+The separate [brief FX comparison](fx-results.md) records actual tool choices, host
+overhead, and verified cited answers with and without added guidance. Broader
+agent-quality evaluation remains future work; per-run model tokens and cost were
+unavailable in those FX captures.
 
 Repeat receipts with explicit redisclosure, automatic parent excerpts, and caching
 remain later options. A repeat receipt needs a host-retention/redisclosure contract;

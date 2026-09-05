@@ -72,3 +72,17 @@
 - Evaluation schema version 2 scores visible category support and preserves the
   old fixed trace as `legacyClientConcerns`. The successful refined vocabulary is
   fixture-informed; seed checks do not establish live agent or language quality.
+
+## FX measurement learnings
+
+- Inspect an exact FX session ID for the saved tool trace. FX 0.0.7 `session last
+  --json` can return only a summary; `session --id <id> --json` includes execution.
+- Keep server core bytes, captured MCP bytes including SDK metadata, and FX tool
+  output bytes separate. Include capability search and tool-selection calls in
+  whole-run totals, and never present each-output-once bytes as model tokens.
+- Missing per-run token or cost fields mean unavailable. Do not attribute a local
+  24-hour usage aggregate to a single run.
+- On macOS, sandboxed FX status can report missing authentication while the
+  existing Keychain login works outside the sandbox; verify before asking for login.
+- Keep current contracts and measured comparison evidence. Remove superseded
+  design projections once the implementation report covers their decisions.

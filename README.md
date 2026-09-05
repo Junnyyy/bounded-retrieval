@@ -64,6 +64,28 @@ These sources motivate the design; the experiments below test this implementatio
 
 ## Evidence and benchmarks
 
+### Brief live FX example
+
+Two fresh FX 0.0.7 sessions used `openai/gpt-5.6-luna`, the same 10,000-message week
+corpus, and the same request for two client concerns. Both cited the same verified
+evidence for pricing predictability and vendor lock-in.
+
+| Live run | Retrieval + FX discovery calls | Tool-output bytes | Session elapsed |
+| --- | ---: | ---: | ---: |
+| Default FX and project context | 3 + 3 | 39,289 | 42.9 s |
+| With the existing guided instructions | 2 + 2 | 27,273 | 20.6 s |
+
+The guided run used **2 fewer total calls and 30.58% fewer tool-output bytes**, with
+2,211 additional prompt bytes. It avoided an unnecessary context expansion. This
+is one run per condition, not a reliable latency or general agent-quality benchmark;
+per-run model tokens and cost were unavailable.
+
+The final discovery reply was also **87.30% smaller** than an offline full-row
+reply for the same 105 matching messages. The [saved FX runs and analysis](docs/fx-results.md)
+include both answers, exact calls, all byte accounting, and comparison limits.
+
+### Deterministic retrieval benchmarks
+
 The default evaluation uses **40,000 synthetic messages**, seed `bounded-retrieval-evaluation-v1`, and corpus `corpus-4f6e4a3f4bb9439c`. It makes no model or provider call.
 
 | Retrieval strategy | Calls | Total response bytes | Reduction vs. naïve |
@@ -76,7 +98,7 @@ The naïve baseline scans all 40,000 rows and returns 1,159 matching messages. I
 
 The refined recipe retrieves visible support for **all five planted concern categories**. Against the corrected pre-optimization version of that same recipe, response bytes fell from 45,564 to 17,122 (**62.42%**) and coverage rose from four categories to five. Call count stayed at three. Matching and sampling corrections, compact schemas, duplicate-aware discovery, and context fitting are documented in the [implementation results](docs/discovery-results.md).
 
-The recipe is hand-authored and fixture-informed. Broad ranked discovery finds only two categories, and the former fixed discover/sample/expand sequence finds none. These results establish deterministic retrieval behavior, not unaided agent quality or language generalization. Actual model tokens, tool-definition overhead, and final answer quality remain unmeasured. Reducing call count remains a goal; this optimization demonstrates fewer response bytes and better evidence coverage.
+The recipe is hand-authored and fixture-informed. Broad ranked discovery finds only two categories, and the former fixed discover/sample/expand sequence finds none. These benchmarks establish deterministic retrieval behavior; the brief live example above separately records one agent's choices and answer. Neither establishes language generalization or model-token savings. Reducing call count remains a goal; the implementation comparison demonstrates fewer response bytes and better evidence coverage.
 
 ## Test and reproduce the results
 
