@@ -1,6 +1,8 @@
-# Video demonstration outline
+# Future video recording outline
 
-The demo should make the failure mode visible before showing the agent. A concise recording can fit in six to eight minutes.
+These are notes for the maintainer to use when recording later. No video is
+included in the project. The recording should make the failure mode visible before
+showing the agent; a concise version can fit in six to eight minutes.
 
 Complete the [runtime and FX setup](running.md) first. The live demo uses the week
 corpus; the benchmark below uses a separate month corpus and seed.

@@ -120,7 +120,6 @@ Artifacts:
 - [Corrected baseline](examples/corrected-discovery-baseline.json)
 - [Formatting-only checkpoint](examples/compact-discovery-checkpoint.json)
 - [Implementation comparison and seed verification](examples/discovery-implementation-results.json)
-- [Historical design and projected responses](discovery-design.md)
 
 To reproduce the default deterministic run, use the repository's `pnpm check` and
 `pnpm evaluate -- --force` commands. Complete current traces are written to ignored

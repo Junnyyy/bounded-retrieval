@@ -43,13 +43,14 @@ Every serialized MCP result fits within **16 KiB**, including structured content
 
 Results preserve attribution, match provenance, stable evidence references, and explicit incomplete, rejected, or clipped outcomes. Samples do not estimate theme prevalence, and exhausting a result set does not certify semantic completeness. The [version 2 response contract](docs/discovery-results.md#response-contract-version-2) explains query references, repeat counts, sampling populations, and omission rules.
 
-## Why the project is set up this way
+## Why the MCP is designed this way
 
-- **Synthetic data with separate ground truth** makes counts and evidence coverage reproducible. The MCP server never reads the evaluation labels, accepts Slack exports, or connects to Slack.
-- **One denormalized SQLite `messages` table plus FTS5** keeps the dataset inspectable and exposes the cost of returning full rows. The index retrieves candidates; original text defines exact matches. Aliases remain explicit. See [corpus and matching details](docs/running.md#corpus-profiles).
-- **A local server and replaceable FX harness** separate retrieval behavior from model and UI choices. Host compaction and truncation are not the safety boundary. Exact runtime and dependency pins make the experiment reproducible.
-
-This is a reference demonstration, not a supported product or reusable library. V1 excludes real ingestion, authentication, hosted deployment, custom UI, embeddings, vector search, semantic counts, CI, and multi-model benchmarking. No license has been selected yet.
+- **Separate tools for separate decisions.** Counting needs no message bodies. Ranked discovery and sampling answer different questions: useful evidence versus possible selection bias. Context and export have their own disclosure rules. Keeping these contracts explicit helps the agent choose the right operation.
+- **Counts travel with discovery.** An agent investigating a theme can get evidence and understand the matching population in one call. It need not measure first or follow a fixed discover/sample/expand sequence.
+- **Structured queries keep intent with the agent.** The agent chooses terms and filters; the server applies exact lexical rules. Strict schemas and explicit alias provenance make that behavior inspectable without another model interpreting the request inside the tool.
+- **Compact evidence preserves the next decision.** Citations, attribution, timestamps, repeat counts, and clipping flags help the agent judge whether to answer, refine, sample, or expand. Full-text and thread diversity reduce redundant excerpts without hiding who said what.
+- **Query references preserve context and accounting.** Follow-up calls reuse the same normalized query and disclosure budget. Only disclosed message references authorize expansion, so context retrieval stays connected to evidence the agent actually received.
+- **The server owns the limits.** Full-response byte caps apply before results reach FX or another host. Explicit incomplete and truncated states prevent a small response from masquerading as an exhaustive answer. Host compaction is not required for the MCP to remain bounded.
 
 ## Research behind the approach
 
@@ -100,5 +101,5 @@ Use this sequence when assessing changes: preserve correctness and evidence cove
 ## Explore further
 
 - [Running guide](docs/running.md): corpus profiles, optional FX 0.0.7 setup, neutral/guided prompts, and source map.
-- [Video demonstration](docs/video-demo.md): show the deterministic comparison, then observe a live agent.
-- [Discovery design](docs/discovery-design.md): the reviewed plan and historical projections; [implementation results](docs/discovery-results.md) record what was actually achieved and what remains open.
+- [Future video outline](docs/video-demo.md): notes for a later recording.
+- [Implementation results](docs/discovery-results.md): measured comparisons, current response semantics, and remaining questions.

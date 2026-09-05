@@ -4,6 +4,13 @@ Start with the [README](../README.md) for the purpose, design, benchmarks, and
 deterministic test workflow. This guide covers corpus options, the optional live
 demo, and where to find the implementation. Run commands from the repository root.
 
+This is a local reference demonstration, not a supported product or reusable
+library. Synthetic data and separate ground truth make the experiment reproducible;
+the MCP server never reads those labels or accepts real Slack data. V1 excludes
+real ingestion, authentication, hosted deployment, custom UI, embeddings, vector
+search, semantic counts, CI, and multi-model benchmarking. No license has been
+selected yet.
+
 ## Runtime and dependencies
 
 Use Node **24.20.0** and native pnpm **11.18.0**, as pinned in
@@ -128,8 +135,8 @@ What concerns did clients raise about OpenAI? Group the themes and cite the mess
 Look for relevant cited evidence, justified lexical refinements, optional sampling,
 and selective context expansion. Small responses alone do not establish success;
 the agent still has to choose useful queries and interpret the evidence. Follow
-the [video demonstration outline](video-demo.md) to record both deterministic
-results and live behavior.
+the [future video outline](video-demo.md) when you are ready to record both
+deterministic results and live behavior.
 
 ## Source map
 
