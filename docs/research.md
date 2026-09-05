@@ -19,7 +19,7 @@ The MCP server must bound its own result before any host sees it. Host compactio
 
 ### Public evidence
 
-- Anthropic recommends returning high-signal data with stable identifiers and consolidating related operations to reduce tool-selection ambiguity. See [Tool definition best practices](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools#best-practices-for-tool-definitions). This wording was rechecked during the README cleanup; choosing five separate contracts below is this project's design decision, not a requirement from that guidance.
+- Anthropic recommends returning high-signal data with stable identifiers and consolidating related operations to reduce tool-selection ambiguity. See [Tool definition best practices](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools#best-practices-for-tool-definitions) (rechecked 2026-09-04). Choosing five separate contracts below is this project's design decision, not a requirement from that guidance.
 - MCP does not define pagination for arbitrary `tools/call` results. Application-level opaque handles are therefore appropriate for progressive disclosure. See [MCP pagination: supported operations](https://modelcontextprotocol.io/specification/2025-11-25/server/utilities/pagination#operations-supporting-pagination).
 - MCP tools can return schema-validated `structuredContent` and resource links. A text representation improves compatibility. See [MCP tools: structured content](https://modelcontextprotocol.io/specification/2025-11-25/server/tools#structured-content) and [MCP tools: resource links](https://modelcontextprotocol.io/specification/2025-11-25/server/tools#resource-links).
 

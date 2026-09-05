@@ -33,6 +33,11 @@ reply, and timestamp fields. Sender and conversation metadata is duplicated on
 each row; there are no normalized user or conversation tables. Internal generator
 metadata and an FTS5 index support reproducibility and retrieval.
 
+Literal `OpenAI` matching is case-insensitive and Unicode-boundary aware.
+`Open AI`, `Open-AI`, `OpenAÍ`, and `ChatGPT` do not silently count as literal
+matches; aliases require explicit query clauses and retain separate provenance.
+FTS5 finds candidates, while original message text defines exact occurrences.
+
 | Profile | Span | Messages | Use |
 | --- | ---: | ---: | --- |
 | `week` | 7 days | 10,000 | Default interactive demo |

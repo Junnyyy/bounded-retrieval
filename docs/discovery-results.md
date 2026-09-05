@@ -68,6 +68,9 @@ Each tool advertises its own strict output schema. Successful results retain the
 shared envelope, stable corpus/query references, byte limits, disclosure counters,
 outcome, omission count, and truncation flag.
 
+Evidence references are stable for a corpus version. Query references are opaque
+and process-scoped; equivalent normalized queries share one reference and budget.
+
 Discovery and sample evidence retain stable message/thread references, sender
 and conversation attribution/IDs, timestamps, lexical match roles, snippets, and
 per-item clipping. They omit the redundant message ID, conversation reference, and
