@@ -88,3 +88,5 @@
   existing Keychain login works outside the sandbox; verify before asking for login.
 - Keep current contracts and measured comparison evidence. Remove superseded
   design projections once the implementation report covers their decisions.
+- Raw FX session exports can include local filesystem paths and host context.
+  Keep them under ignored `artifacts/`; publish only curated example records.

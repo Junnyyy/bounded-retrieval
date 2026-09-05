@@ -2,6 +2,9 @@
 
 A local reference demonstration of efficient MCP tools for investigating large conversational datasets. It uses deterministic, synthetic Slack-style sales messages and a SQLite-backed MCP server.
 
+**[Watch the 49-second MCP demo](mcp-demo.mp4)**: natural-language counting,
+discovery, and thread context using synthetic data.
+
 The idea: **the amount of data examined should be independent of the amount shown to the model.** Search and count on the server; give the agent compact evidence it can use to answer the question or decide what to investigate next.
 
 ## Purpose and goals
