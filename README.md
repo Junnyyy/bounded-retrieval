@@ -102,27 +102,35 @@ The expected shape is bounded discovery, optional representative sampling, and s
 
 `pnpm evaluate -- --force` produced these deterministic measurements for the 40,000-message month fixture (`corpus-4f6e4a3f4bb9439c`):
 
-| Question | Strategy | Tool calls | Model-visible result bytes | Reduction vs. naïve |
+| Question | Strategy | Tool calls | Full MCP result bytes | Reduction vs. naïve |
 | --- | --- | ---: | ---: | ---: |
-| How often did OpenAI come up? | Bounded measurement | 1 | 4,084 | 99.62% |
-| What concerns did clients raise? | Discover + sample + expand | 3 | 24,434 | 97.71% |
+| How often did OpenAI come up? | Bounded measurement | 1 | 4,086 | 99.62% |
+| What concerns did clients raise? | Three hand-authored lexical refinements | 3 | 17,122 | 98.40% |
 | Either question | Naïve full-row regex | 1 | 1,069,038 | — |
 
 The naïve baseline scans all 40,000 rows and returns all 1,159 matching denormalized messages. The bounded and naïve byte totals both measure the complete MCP-compatible response, including `structuredContent` and its text compatibility representation.
 
-These numbers are retrieval measurements, not a claim about model quality. No model was called. A live FX run can still make unnecessary tool calls or produce a poor synthesis; that remaining uncertainty is the agent-engineering problem this server constrains rather than pretending to solve.
+The refined strategy retrieves support for all five planted concern categories. Compared with the corrected pre-optimization baseline for the same strategy, it uses 62.42% fewer response bytes and improves coverage from four categories to five, with the same three calls. Its vocabulary is hand-authored and fixture-informed; this does not establish that an unaided agent will choose those queries. The evaluator also reports direct discovery, distribution sampling, and the former fixed discover/sample/expand sequence, including their missing evidence.
+
+These are deterministic retrieval measurements. No model was called, and actual model input tokens and tool-definition overhead are not included. See [discovery implementation results](docs/discovery-results.md) for comparisons, verification, and limitations.
 
 ## Tool surface
 
 | Tool | Purpose | Key boundary |
 | --- | --- | --- |
 | `measure_messages` | Exact counts and time distribution | No message text; 4 KiB |
-| `discover_messages` | Ranked, thread-diverse evidence | At most 8 snippets; 16 KiB |
+| `discover_messages` | Ranked evidence diversified by full text and thread | At most 8 snippets; 16 KiB |
 | `sample_messages` | Test representativeness across a distribution | New evidence, not pagination; 16 KiB |
 | `expand_message_context` | Recover one selected thread or nearby conversation | Disclosed anchors only; 20 messages and 12 KiB |
 | `export_messages` | Materialize every exact row as JSONL | Metadata only in context; rows stay on disk |
 
 Equivalent normalized queries share one process-scoped `query_ref` and a 48 KiB cumulative disclosure budget. Requested limits can be lower, never higher. Errors, truncation, and incomplete scans remain explicit.
+
+Results use `schema_version: "2"` and tool-specific output schemas. Discovery retains stable message/thread references, sender and conversation attribution/IDs, timestamps, lexical provenance, counts, and time buckets. Redundant message IDs, conversation references, and raw ranking scores are omitted from discovery and sampling evidence. Missing query filters mean unrestricted. Timing stays in evaluation rather than tool payloads.
+
+`same_text_matches` describes identical full text across the exact filtered population, including message, sender, conversation, and thread counts. The cited sender is one representative. Counts are `null` if measurement is incomplete; aggregates never authorize expansion of undisclosed messages. `selection.exhaustive` concerns the eligible message set, not semantic theme coverage or unclipped full text. `stop_reasons` distinguishes item limits, interrupted scans, byte limits, and clipping. Multiple reasons can apply.
+
+Sampling is over previously undisclosed messages. `uniform` uses seeded message priorities; the other strategies balance seeded time/conversation strata. The response states the eligible population and the number of returned strata. A sample is not an estimate of theme prevalence or a completeness certificate.
 
 Sampling stays separate from ranked discovery because they answer different questions. Ranking asks “what looks most relevant?” Sampling asks “is that top-ranked evidence representative?” Combining them would hide that distinction from the agent and from evaluation.
 

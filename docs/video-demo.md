@@ -20,6 +20,8 @@ pnpm evaluate -- --force
 
 Call out the ground-truth count, 16 KiB per-result ceiling, 48 KiB per-query ceiling, naïve full-row result size, bounded result size, and reduction percentage. Be explicit that this phase calls no model.
 
+Also show supported and missing concern categories in `discoveryExperiments`. The refined recipe is hand-authored and fixture-informed. Contrast it with the broad ranked and sampled traces; do not present small responses as effective when they lack relevant support. The former fixed sequence is retained as `scenarios.legacyClientConcerns`.
+
 ## 3. Show the naïve failure
 
 Open `artifacts/evaluations/month.json`. Explain that the evaluation-only regex baseline returns all matching denormalized rows as one MCP-compatible result. On the reference fixture that is over one megabyte before the agent has decided which evidence matters.
@@ -54,7 +56,7 @@ Ask:
 What concerns did clients raise about OpenAI? Group the themes and cite the message references supporting each theme.
 ```
 
-As the agent works, identify the purpose of each call: ranked/thread-diverse discovery, optional distribution testing, and selected context reconstruction. If the agent makes a poor or redundant call, keep it in the recording—the service should remain bounded even when tool use is imperfect.
+As the agent works, identify the purpose of each call: discovery diversified by full text and thread, justified lexical refinement, optional distribution testing, and selected context reconstruction. Show repeat counts separately from the representative's attribution. If the agent makes a poor or redundant call, keep it in the recording—the service should remain bounded even when tool use is imperfect.
 
 ## 7. Close honestly
 

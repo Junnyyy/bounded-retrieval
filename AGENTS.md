@@ -55,3 +55,15 @@
 - Any duplicate grouping must compare full message text before clipping and state
   the population over which repeat counts were computed. A representative's
   attribution does not describe every sender in its group.
+- Discovery counts selected duplicate groups during its existing exact measurement
+  pass. Both passes share execution limits; return null group counts if measurement
+  is incomplete. Group totals never authorize undisclosed expansion anchors.
+- MCP response schema version 2 has tool-specific output schemas. Keep all reasons
+  for truncation, including byte fitting, and compute omission counts from the
+  transmitted selection. Preserve thread roots and anchors longest during context
+  fitting.
+- Normalize a single deduplicated clause to `combine: all` so equivalent `any`
+  requests cannot create a separate disclosure budget.
+- Evaluation schema version 2 scores visible category support and preserves the
+  old fixed trace as `legacyClientConcerns`. The successful refined vocabulary is
+  fixture-informed; seed checks do not establish live agent or language quality.

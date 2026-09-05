@@ -1,7 +1,8 @@
 # Discovery response design and evaluation
 
-Status: planning artifact for review. The response examples below are captured or
-projected data; the runtime, tool schemas, and retrieval algorithms are unchanged.
+Status: reviewed design; the first implementation milestone is complete. The
+sections below preserve the pre-implementation review and historical projections.
+See [implementation results and the current contract](discovery-results.md).
 
 ## Objective
 

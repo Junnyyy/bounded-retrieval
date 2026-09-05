@@ -1,0 +1,141 @@
+{
+  "status": "Implemented discovery milestone; deterministic retrieval measurements, no model or provider calls.",
+  "sourceCheckpoint": "349bc51",
+  "corpus": {
+    "messageCount": 40000,
+    "profile": "month",
+    "realistic": true,
+    "seed": "bounded-retrieval-evaluation-v1",
+    "version": "corpus-4f6e4a3f4bb9439c"
+  },
+  "node": "v24.20.0",
+  "assertions": {
+    "exactCountMatchesGroundTruth": true,
+    "everyBoundedResultWithinCap": true,
+    "frequencyResultReductionAtLeast90Percent": true,
+    "queryBudgetWithinCap": true,
+    "refinedConcernCoverageComplete": true
+  },
+  "comparison": [
+    {
+      "name": "ranked",
+      "calls": 1,
+      "beforeBytes": 15444,
+      "afterBytes": 13922,
+      "reductionPercent": 9.85,
+      "beforeCategories": [],
+      "afterCategories": [
+        "pricing",
+        "vendor_lock_in"
+      ],
+      "afterRepeatedExcerptBytes": 0,
+      "candidateRowsExamined": 888
+    },
+    {
+      "name": "ranked_then_sample",
+      "calls": 3,
+      "beforeBytes": 35688,
+      "afterBytes": 30320,
+      "reductionPercent": 15.04,
+      "beforeCategories": [
+        "data_privacy",
+        "pricing",
+        "reliability"
+      ],
+      "afterCategories": [
+        "data_privacy",
+        "pricing",
+        "reliability"
+      ],
+      "afterRepeatedExcerptBytes": 631,
+      "candidateRowsExamined": 1793
+    },
+    {
+      "name": "refined_lexical",
+      "calls": 3,
+      "beforeBytes": 45564,
+      "afterBytes": 17122,
+      "reductionPercent": 62.42,
+      "beforeCategories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "vendor_lock_in"
+      ],
+      "afterCategories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "reliability",
+        "vendor_lock_in"
+      ],
+      "afterRepeatedExcerptBytes": 0,
+      "candidateRowsExamined": 160
+    }
+  ],
+  "verification": [
+    {
+      "profile": "week",
+      "seed": "bounded-verification-week-v1",
+      "assertions": {
+        "exactCountMatchesGroundTruth": true,
+        "everyBoundedResultWithinCap": true,
+        "frequencyResultReductionAtLeast90Percent": true,
+        "queryBudgetWithinCap": true,
+        "refinedConcernCoverageComplete": true
+      },
+      "refinedBytes": 13060,
+      "refinedCategories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "reliability",
+        "vendor_lock_in"
+      ]
+    },
+    {
+      "profile": "month",
+      "seed": "bounded-verification-month-v1",
+      "assertions": {
+        "exactCountMatchesGroundTruth": true,
+        "everyBoundedResultWithinCap": true,
+        "frequencyResultReductionAtLeast90Percent": true,
+        "queryBudgetWithinCap": true,
+        "refinedConcernCoverageComplete": true
+      },
+      "refinedBytes": 17102,
+      "refinedCategories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "reliability",
+        "vendor_lock_in"
+      ]
+    },
+    {
+      "profile": "month",
+      "seed": "bounded-verification-month-v2",
+      "assertions": {
+        "exactCountMatchesGroundTruth": true,
+        "everyBoundedResultWithinCap": true,
+        "frequencyResultReductionAtLeast90Percent": true,
+        "queryBudgetWithinCap": true,
+        "refinedConcernCoverageComplete": true
+      },
+      "refinedBytes": 17120,
+      "refinedCategories": [
+        "data_privacy",
+        "model_quality",
+        "pricing",
+        "reliability",
+        "vendor_lock_in"
+      ]
+    }
+  ],
+  "limitations": [
+    "Refined query vocabulary is hand-authored and fixture-informed; seed variation does not establish language generalization.",
+    "Counts include complete MCP-compatible tool responses, not actual model input tokens or tool-definition overhead.",
+    "The number of calls is unchanged in these comparisons.",
+    "Broad lexical discovery remains partial evidence for semantic themes."
+  ]
+}
