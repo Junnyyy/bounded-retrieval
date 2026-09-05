@@ -43,9 +43,12 @@
 
 ## Discovery evaluation learnings
 
-- Snippet extraction and eligibility checks currently share compiled regular
-  expressions. Keep eligibility independent of matcher cursor state and row order;
-  a bounded sample must not become small because later valid rows were skipped.
+- Match counting supplies snippet offsets in one pass. Keep eligibility independent
+  of matcher cursor state and row order; a bounded sample must not become small
+  because later valid rows were skipped.
+- Sampling is over previously undisclosed messages. Seed the order of strata when
+  there are more dates or conversations than slots; do not silently remove
+  same-thread messages and change the sampled population.
 - Thread diversity and distinct text do not establish task relevance. Evaluate
   qualitative support separately from byte savings using labels that remain
   outside tool results and retrieval decisions.

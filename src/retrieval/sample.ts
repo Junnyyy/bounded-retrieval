@@ -109,21 +109,20 @@ export function sampleMessages(
   }
 
   const selected: EvidenceRecord[] = [];
-  const selectedThreads = new Set<string>();
+  // Choose strata by seeded priority, not chronological or ID order. Sampling
+  // remains over messages; removing same-thread rows would bias that population.
   const orderedBuckets = Array.from(buckets.entries()).sort(([left], [right]) =>
-    left.localeCompare(right),
+    score(options.seed, options.strategy, `stratum:${left}`).localeCompare(
+      score(options.seed, options.strategy, `stratum:${right}`),
+    ) || left.localeCompare(right),
   );
   let position = 0;
   while (selected.length < limit) {
     let added = false;
     for (const [, bucket] of orderedBuckets) {
       const candidate = bucket[position];
-      if (
-        candidate !== undefined &&
-        !selectedThreads.has(candidate.evidence.threadRef)
-      ) {
+      if (candidate !== undefined) {
         selected.push(candidate.evidence);
-        selectedThreads.add(candidate.evidence.threadRef);
         added = true;
         if (selected.length === limit) break;
       }

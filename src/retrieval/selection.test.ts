@@ -97,6 +97,38 @@ test("samples deterministically and excludes disclosed messages", () => {
   });
 });
 
+test("seeded sampling reaches the whole population rather than the first strata", () => {
+  withCorpus((database) => {
+    for (const strategy of ["uniform", "across_time", "across_conversations"] as const) {
+      const days = new Set<string>();
+      const conversations = new Set<string>();
+      for (let seed = 0; seed < 32; seed += 1) {
+        const result = sampleMessages(database, OPENAI_QUERY, {
+          limit: 2, seed: `coverage-${seed}`, strategy,
+        });
+        assert.equal(result.outcome, "complete");
+        assert.equal(result.evidence.length, 2);
+        for (const item of result.evidence) {
+          days.add(item.sentAt.slice(0, 10));
+          conversations.add(item.conversation.id);
+        }
+      }
+      assert.ok(days.size >= 6, `${strategy} covered only ${days.size} dates`);
+      assert.ok(conversations.size >= 8, `${strategy} covered only ${conversations.size} conversations`);
+    }
+  });
+});
+
+test("sampling reports incomplete work when a candidate limit interrupts the scan", () => {
+  withCorpus((database) => {
+    const result = sampleMessages(database, OPENAI_QUERY, {
+      executionLimits: { maxCandidateRows: 1, maxMilliseconds: 5_000 },
+      limit: 8, seed: "interrupted", strategy: "uniform",
+    });
+    assert.equal(result.outcome, "incomplete");
+  });
+});
+
 test("expands threaded and unthreaded messages within the hard item cap", () => {
   withCorpus((database) => {
     const threaded = database

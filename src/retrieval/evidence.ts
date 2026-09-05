@@ -70,21 +70,6 @@ function clipAround(
   return { clipped: true, value: `${prefix}${text.slice(start, end)}${suffix}` };
 }
 
-function firstMatchOffset(
-  text: string,
-  clauses: readonly CompiledClause[],
-): number {
-  let offset = Number.POSITIVE_INFINITY;
-  for (const clause of clauses) {
-    clause.pattern.lastIndex = 0;
-    const match = clause.pattern.exec(text);
-    if (match?.index !== undefined) {
-      offset = Math.min(offset, match.index);
-    }
-  }
-  return Number.isFinite(offset) ? offset : 0;
-}
-
 export function toEvidence(
   message: MessageRecord,
   options: {
@@ -101,7 +86,7 @@ export function toEvidence(
   }
   const snippet = clipAround(
     message.text,
-    firstMatchOffset(message.text, options.clauses),
+    Math.min(...matches.map((match) => match.firstOffset)),
     options.maximumSnippetCharacters,
   );
   const threadId = threadIdentity(message);
