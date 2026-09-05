@@ -1,0 +1,955 @@
+{
+  "status": "Design examples only. No production behavior changed. After examples are scratch projections, not tool results from an implemented revision.",
+  "source_commit": "0350b52",
+  "runtime": "v24.20.0",
+  "corpus": {
+    "version": "corpus-4f6e4a3f4bb9439c",
+    "profile": "month",
+    "message_count": 40000,
+    "seed": "bounded-retrieval-evaluation-v1"
+  },
+  "normalization": "Before was captured from the service, then duration_ms was set to 0 and query_ref replaced with a non-resolvable review placeholder. Disclosure counters were recomputed for each independent first-call example.",
+  "byte_measurement": "Buffer.byteLength(JSON.stringify({content:[{type:\"text\",text:JSON.stringify(envelope)}],structuredContent:envelope}),\"utf8\"); property order is content then structuredContent, text then type within the text block. Pretty-printing this review file is not part of the wire measurement.",
+  "request": {
+    "tool": "discover_messages",
+    "arguments": {
+      "query": {
+        "clauses": [
+          {
+            "match": "literal",
+            "role": "canonical",
+            "text": "OpenAI"
+          }
+        ],
+        "combine": "all",
+        "filters": {
+          "sender_types": [
+            "client"
+          ]
+        }
+      },
+      "limit": 5
+    }
+  },
+  "comparison": {
+    "before_bytes": 11430,
+    "format_only_bytes": 9398,
+    "format_only_reduction_percent": 17.78,
+    "selection_preview_bytes": 10154,
+    "before_distinct_texts": 1,
+    "selection_preview_distinct_full_texts": 5
+  },
+  "before": {
+    "corpus_version": "corpus-4f6e4a3f4bb9439c",
+    "disclosure": {
+      "cumulative_bytes": 11430,
+      "remaining_bytes": 37722,
+      "response_bytes": 11430
+    },
+    "limits": {
+      "cumulative_query_bytes": 49152,
+      "response_bytes": 16384
+    },
+    "next_actions": [
+      "Use sample_messages with query_ref to inspect another distribution.",
+      "Use expand_message_context with query_ref and a returned message_ref.",
+      "Use export_messages with query_ref for exhaustive output."
+    ],
+    "omitted": 430,
+    "outcome": "complete",
+    "query_ref": "query_REVIEW_ONLY_NOT_A_REAL_REF",
+    "result": {
+      "candidate_rows_examined": 5,
+      "duration_ms": 0,
+      "evidence": [
+        {
+          "conversation": {
+            "id": "dm-cedar-labs",
+            "name": "Cedar Labs account DM",
+            "ref": "corpus://corpus-4f6e4a3f4bb9439c/conversations/dm-cedar-labs",
+            "type": "direct_message"
+          },
+          "matched_roles": [
+            "canonical"
+          ],
+          "message_id": "message-000000223",
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000223",
+          "rank": -4.4572529123585545,
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-05T17:59:45.600Z",
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000223"
+        },
+        {
+          "conversation": {
+            "id": "client-helio-systems",
+            "name": "Helio Systems shared account",
+            "ref": "corpus://corpus-4f6e4a3f4bb9439c/conversations/client-helio-systems",
+            "type": "private_channel"
+          },
+          "matched_roles": [
+            "canonical"
+          ],
+          "message_id": "message-000001000",
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000001000",
+          "rank": -4.4572529123585545,
+          "sender": {
+            "id": "client-03",
+            "name": "Chris Novak",
+            "organization": "Helio Systems",
+            "type": "client"
+          },
+          "sent_at": "2026-01-06T07:58:55.200Z",
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000001000"
+        },
+        {
+          "conversation": {
+            "id": "client-northwind-studio",
+            "name": "Northwind Studio shared account",
+            "ref": "corpus://corpus-4f6e4a3f4bb9439c/conversations/client-northwind-studio",
+            "type": "private_channel"
+          },
+          "matched_roles": [
+            "canonical"
+          ],
+          "message_id": "message-000005662",
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000005662",
+          "rank": -4.4572529123585545,
+          "sender": {
+            "id": "client-09",
+            "name": "Indigo Vega",
+            "organization": "Northwind Studio",
+            "type": "client"
+          },
+          "sent_at": "2026-01-09T19:53:52.800Z",
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000005662"
+        },
+        {
+          "conversation": {
+            "id": "client-juniper-foods",
+            "name": "Juniper Foods shared account",
+            "ref": "corpus://corpus-4f6e4a3f4bb9439c/conversations/client-juniper-foods",
+            "type": "private_channel"
+          },
+          "matched_roles": [
+            "canonical"
+          ],
+          "message_id": "message-000005921",
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000005921",
+          "rank": -4.4572529123585545,
+          "sender": {
+            "id": "client-02",
+            "name": "Blair Morgan",
+            "organization": "Juniper Foods",
+            "type": "client"
+          },
+          "sent_at": "2026-01-10T00:33:36.000Z",
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000005921"
+        },
+        {
+          "conversation": {
+            "id": "client-cedar-labs",
+            "name": "Cedar Labs shared account",
+            "ref": "corpus://corpus-4f6e4a3f4bb9439c/conversations/client-cedar-labs",
+            "type": "private_channel"
+          },
+          "matched_roles": [
+            "canonical"
+          ],
+          "message_id": "message-000006180",
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000006180",
+          "rank": -4.4572529123585545,
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-10T05:13:19.200Z",
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000006131"
+        }
+      ],
+      "normalized_query": {
+        "clauses": [
+          {
+            "match": "literal",
+            "role": "canonical",
+            "text": "openai"
+          }
+        ],
+        "combine": "all",
+        "filters": {
+          "conversation_ids": [],
+          "conversation_types": [],
+          "from_inclusive": null,
+          "sender_ids": [],
+          "sender_types": [
+            "client"
+          ],
+          "thread_ids": [],
+          "to_exclusive": null
+        }
+      },
+      "selection": {
+        "complete": false,
+        "kind": "ranked_thread_diverse"
+      },
+      "shape": {
+        "metrics": {
+          "conversations": 10,
+          "messages": 435,
+          "occurrences": 483,
+          "threads": 430
+        },
+        "time_buckets": [
+          {
+            "day": "2026-01-05",
+            "messages": 6
+          },
+          {
+            "day": "2026-01-06",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-07",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-08",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-09",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-10",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-11",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-12",
+            "messages": 19
+          },
+          {
+            "day": "2026-01-13",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-14",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-15",
+            "messages": 20
+          },
+          {
+            "day": "2026-01-16",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-17",
+            "messages": 9
+          },
+          {
+            "day": "2026-01-18",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-19",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-20",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-21",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-22",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-23",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-24",
+            "messages": 16
+          },
+          {
+            "day": "2026-01-25",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-26",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-27",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-28",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-29",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-30",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-31",
+            "messages": 15
+          },
+          {
+            "day": "2026-02-01",
+            "messages": 13
+          },
+          {
+            "day": "2026-02-02",
+            "messages": 16
+          },
+          {
+            "day": "2026-02-03",
+            "messages": 19
+          },
+          {
+            "day": "2026-02-04",
+            "messages": 11
+          }
+        ]
+      }
+    },
+    "result_kind": "discovery",
+    "schema_version": "1",
+    "truncated": true
+  },
+  "after_format_only": {
+    "corpus_version": "corpus-4f6e4a3f4bb9439c",
+    "disclosure": {
+      "cumulative_bytes": 9398,
+      "remaining_bytes": 39754,
+      "response_bytes": 9398
+    },
+    "limits": {
+      "cumulative_query_bytes": 49152,
+      "response_bytes": 16384
+    },
+    "next_actions": [],
+    "omitted": 430,
+    "outcome": "complete",
+    "query_ref": "query_REVIEW_ONLY_NOT_A_REAL_REF",
+    "result": {
+      "candidate_rows_examined": 5,
+      "evidence": [
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000223",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000223",
+          "conversation": {
+            "id": "dm-cedar-labs",
+            "name": "Cedar Labs account DM",
+            "type": "direct_message"
+          },
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-05T17:59:45.600Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000001000",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000001000",
+          "conversation": {
+            "id": "client-helio-systems",
+            "name": "Helio Systems shared account",
+            "type": "private_channel"
+          },
+          "sender": {
+            "id": "client-03",
+            "name": "Chris Novak",
+            "organization": "Helio Systems",
+            "type": "client"
+          },
+          "sent_at": "2026-01-06T07:58:55.200Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000005662",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000005662",
+          "conversation": {
+            "id": "client-northwind-studio",
+            "name": "Northwind Studio shared account",
+            "type": "private_channel"
+          },
+          "sender": {
+            "id": "client-09",
+            "name": "Indigo Vega",
+            "organization": "Northwind Studio",
+            "type": "client"
+          },
+          "sent_at": "2026-01-09T19:53:52.800Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000005921",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000005921",
+          "conversation": {
+            "id": "client-juniper-foods",
+            "name": "Juniper Foods shared account",
+            "type": "private_channel"
+          },
+          "sender": {
+            "id": "client-02",
+            "name": "Blair Morgan",
+            "organization": "Juniper Foods",
+            "type": "client"
+          },
+          "sent_at": "2026-01-10T00:33:36.000Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000006180",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000006131",
+          "conversation": {
+            "id": "client-cedar-labs",
+            "name": "Cedar Labs shared account",
+            "type": "private_channel"
+          },
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-10T05:13:19.200Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false
+        }
+      ],
+      "normalized_query": {
+        "clauses": [
+          {
+            "match": "literal",
+            "role": "canonical",
+            "text": "openai"
+          }
+        ],
+        "combine": "all",
+        "filters": {
+          "sender_types": [
+            "client"
+          ]
+        }
+      },
+      "selection": {
+        "kind": "ranked_thread_diverse",
+        "exhaustive": false,
+        "stop_reason": "item_limit"
+      },
+      "shape": {
+        "metrics": {
+          "conversations": 10,
+          "messages": 435,
+          "occurrences": 483,
+          "threads": 430
+        },
+        "time_buckets": [
+          {
+            "day": "2026-01-05",
+            "messages": 6
+          },
+          {
+            "day": "2026-01-06",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-07",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-08",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-09",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-10",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-11",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-12",
+            "messages": 19
+          },
+          {
+            "day": "2026-01-13",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-14",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-15",
+            "messages": 20
+          },
+          {
+            "day": "2026-01-16",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-17",
+            "messages": 9
+          },
+          {
+            "day": "2026-01-18",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-19",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-20",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-21",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-22",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-23",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-24",
+            "messages": 16
+          },
+          {
+            "day": "2026-01-25",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-26",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-27",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-28",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-29",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-30",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-31",
+            "messages": 15
+          },
+          {
+            "day": "2026-02-01",
+            "messages": 13
+          },
+          {
+            "day": "2026-02-02",
+            "messages": 16
+          },
+          {
+            "day": "2026-02-03",
+            "messages": 19
+          },
+          {
+            "day": "2026-02-04",
+            "messages": 11
+          }
+        ]
+      }
+    },
+    "result_kind": "discovery",
+    "schema_version": "1",
+    "truncated": true
+  },
+  "after_selection_preview": {
+    "corpus_version": "corpus-4f6e4a3f4bb9439c",
+    "disclosure": {
+      "cumulative_bytes": 10154,
+      "remaining_bytes": 38998,
+      "response_bytes": 10154
+    },
+    "limits": {
+      "cumulative_query_bytes": 49152,
+      "response_bytes": 16384
+    },
+    "next_actions": [],
+    "omitted": 430,
+    "outcome": "complete",
+    "query_ref": "query_REVIEW_ONLY_NOT_A_REAL_REF",
+    "result": {
+      "candidate_rows_examined": 506,
+      "evidence": [
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000223",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000223",
+          "conversation": {
+            "id": "dm-cedar-labs",
+            "name": "Cedar Labs account DM",
+            "type": "direct_message"
+          },
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-05T17:59:45.600Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI and OpenAI pricing both came up in the same call.",
+          "snippet_clipped": false,
+          "same_text_matches": {
+            "messages": 48,
+            "senders": 10,
+            "conversations": 10,
+            "threads": 48
+          }
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000593",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000593",
+          "conversation": {
+            "id": "client-helio-systems",
+            "name": "Helio Systems shared account",
+            "type": "private_channel"
+          },
+          "sender": {
+            "id": "client-04",
+            "name": "Devon Ortiz",
+            "organization": "Helio Systems",
+            "type": "client"
+          },
+          "sent_at": "2026-01-06T00:39:21.600Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "Please add @OpenAI to the comparison notes.",
+          "snippet_clipped": false,
+          "same_text_matches": {
+            "messages": 51,
+            "senders": 10,
+            "conversations": 10,
+            "threads": 51
+          }
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000112",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000112",
+          "conversation": {
+            "id": "dm-cedar-labs",
+            "name": "Cedar Labs account DM",
+            "type": "direct_message"
+          },
+          "sender": {
+            "id": "client-05",
+            "name": "Ellis Park",
+            "organization": "Cedar Labs",
+            "type": "client"
+          },
+          "sent_at": "2026-01-05T15:59:52.800Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI's release schedule may affect our proposal.",
+          "snippet_clipped": false,
+          "same_text_matches": {
+            "messages": 50,
+            "senders": 9,
+            "conversations": 10,
+            "threads": 50
+          }
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000778",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000778",
+          "conversation": {
+            "id": "dm-northwind-studio",
+            "name": "Northwind Studio account DM",
+            "type": "direct_message"
+          },
+          "sender": {
+            "id": "client-09",
+            "name": "Indigo Vega",
+            "organization": "Northwind Studio",
+            "type": "client"
+          },
+          "sent_at": "2026-01-06T03:59:09.600Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "OpenAI came up in today's account review.",
+          "snippet_clipped": false,
+          "same_text_matches": {
+            "messages": 54,
+            "senders": 10,
+            "conversations": 10,
+            "threads": 54
+          }
+        },
+        {
+          "message_ref": "corpus://corpus-4f6e4a3f4bb9439c/messages/message-000000667",
+          "thread_ref": "corpus://corpus-4f6e4a3f4bb9439c/threads/message-000000667",
+          "conversation": {
+            "id": "dm-atlas-works",
+            "name": "Atlas Works account DM",
+            "type": "direct_message"
+          },
+          "sender": {
+            "id": "client-07",
+            "name": "Gray Shah",
+            "organization": "Atlas Works",
+            "type": "client"
+          },
+          "sent_at": "2026-01-06T01:59:16.800Z",
+          "matched_roles": [
+            "canonical"
+          ],
+          "snippet": "The OpenAI-powered workflow performed well in the trial.",
+          "snippet_clipped": false,
+          "same_text_matches": {
+            "messages": 58,
+            "senders": 10,
+            "conversations": 10,
+            "threads": 58
+          }
+        }
+      ],
+      "normalized_query": {
+        "clauses": [
+          {
+            "match": "literal",
+            "role": "canonical",
+            "text": "openai"
+          }
+        ],
+        "combine": "all",
+        "filters": {
+          "sender_types": [
+            "client"
+          ]
+        }
+      },
+      "selection": {
+        "kind": "ranked_exact_text_and_thread_diverse",
+        "exhaustive": false,
+        "stop_reason": "item_limit"
+      },
+      "shape": {
+        "metrics": {
+          "conversations": 10,
+          "messages": 435,
+          "occurrences": 483,
+          "threads": 430
+        },
+        "time_buckets": [
+          {
+            "day": "2026-01-05",
+            "messages": 6
+          },
+          {
+            "day": "2026-01-06",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-07",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-08",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-09",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-10",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-11",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-12",
+            "messages": 19
+          },
+          {
+            "day": "2026-01-13",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-14",
+            "messages": 12
+          },
+          {
+            "day": "2026-01-15",
+            "messages": 20
+          },
+          {
+            "day": "2026-01-16",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-17",
+            "messages": 9
+          },
+          {
+            "day": "2026-01-18",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-19",
+            "messages": 10
+          },
+          {
+            "day": "2026-01-20",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-21",
+            "messages": 13
+          },
+          {
+            "day": "2026-01-22",
+            "messages": 17
+          },
+          {
+            "day": "2026-01-23",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-24",
+            "messages": 16
+          },
+          {
+            "day": "2026-01-25",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-26",
+            "messages": 15
+          },
+          {
+            "day": "2026-01-27",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-28",
+            "messages": 14
+          },
+          {
+            "day": "2026-01-29",
+            "messages": 11
+          },
+          {
+            "day": "2026-01-30",
+            "messages": 18
+          },
+          {
+            "day": "2026-01-31",
+            "messages": 15
+          },
+          {
+            "day": "2026-02-01",
+            "messages": 13
+          },
+          {
+            "day": "2026-02-02",
+            "messages": 16
+          },
+          {
+            "day": "2026-02-03",
+            "messages": 19
+          },
+          {
+            "day": "2026-02-04",
+            "messages": 11
+          }
+        ]
+      }
+    },
+    "result_kind": "discovery",
+    "schema_version": "1",
+    "truncated": true
+  },
+  "evaluation_only": {
+    "note": "These labels are outside the response envelopes and must never be passed to the agent or selection algorithm.",
+    "matching_messages": 435,
+    "distinct_full_texts": 12,
+    "total_concern_categories": 5,
+    "before_concern_categories": [],
+    "selection_preview_concern_categories": []
+  },
+  "selection_method": "Scratch preview: preserve existing BM25/time/message-ID ordering, compile independent matchers per candidate, group eligible rows by byte-identical full text, and select the first five rows with unseen text and unseen thread. Compute group multiplicities over all exact matches. No labels, semantic ranking, or sampling are used. This scratch full scan is not a production execution-limit design."
+}
