@@ -157,6 +157,11 @@ test("expands threaded and unthreaded messages within the hard item cap", () => 
         (message) => message.messageId === threaded.message_id,
       ),
     );
+    const anchorOnly = expandMessageContext(database, threaded.message_id, 1);
+    assert.equal(anchorOnly.messages.length, 1);
+    assert.equal(anchorOnly.messages[0]?.messageId, threaded.message_id);
+    assert.ok(anchorOnly.totalMessages >= 2);
+    assert.equal(anchorOnly.clippedBefore, true);
 
     const conversationContext = expandMessageContext(
       database,

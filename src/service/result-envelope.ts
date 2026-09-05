@@ -5,7 +5,9 @@ import {
 } from "../budget/limits.ts";
 import type { QueryRegistry, QuerySnapshot } from "../session/query-registry.ts";
 
-export const SCHEMA_VERSION = "1";
+export const SCHEMA_VERSION = "2";
+
+export type ByteLimitReason = "response_byte_limit" | "query_byte_limit";
 
 export interface ResultEnvelope<Result extends object> {
   readonly corpus_version: string;
@@ -42,14 +44,14 @@ export interface EncodedResult<Result extends object> {
 interface FinalizeOptions<Result extends object> {
   readonly maximumBytes: number;
   readonly messageIds: () => readonly string[];
-  readonly nextActions: readonly string[];
+  readonly nextActions: readonly string[] | (() => readonly string[]);
   readonly omitted: () => number | null;
   readonly outcome: "complete" | "incomplete";
   readonly queryRef: string;
   readonly registry: QueryRegistry;
   readonly result: () => Result;
   readonly resultKind: string;
-  readonly shrink: () => boolean;
+  readonly shrink: (reasons: readonly ByteLimitReason[]) => boolean;
   readonly truncated: () => boolean;
 }
 
@@ -82,7 +84,7 @@ function envelopeFor<Result extends object>(
       cumulative_query_bytes: RESULT_LIMITS.cumulativeQueryBytes,
       response_bytes: options.maximumBytes,
     },
-    next_actions: options.nextActions,
+    next_actions: typeof options.nextActions === "function" ? options.nextActions() : options.nextActions,
     omitted: options.omitted(),
     outcome: options.outcome,
     query_ref: snapshot.queryRef,
@@ -133,7 +135,10 @@ export function finalizeResult<Result extends object>(
       );
       return encoded;
     }
-    if (!options.shrink()) {
+    const reasons: ByteLimitReason[] = [];
+    if (!fitsResponse) reasons.push("response_byte_limit");
+    if (!fitsDisclosure) reasons.push("query_byte_limit");
+    if (!options.shrink(reasons)) {
       throw new ResultSizeExceededError(
         encoded.bytes,
         Math.min(options.maximumBytes, snapshot.disclosure.remainingBytes),

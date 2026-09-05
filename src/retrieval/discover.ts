@@ -21,6 +21,7 @@ export interface DiscoveryResult {
   readonly evidence: readonly EvidenceRecord[];
   readonly query: NormalizedQuery;
   readonly selectionComplete: boolean;
+  readonly stopReason: "item_limit" | "candidate_limit" | "time_limit" | null;
   readonly shape: MeasureResult;
 }
 
@@ -52,6 +53,7 @@ export function discoverMessages(
   const startedAt = performance.now();
   let candidateRowsExamined = 0;
   let selectionComplete = true;
+  let stopReason: DiscoveryResult["stopReason"] = null;
 
   for (const candidate of iterateCandidates(database, query, { ranked: true })) {
     candidateRowsExamined += 1;
@@ -60,6 +62,7 @@ export function discoverMessages(
       performance.now() - startedAt > executionLimits.maxMilliseconds
     ) {
       selectionComplete = false;
+      stopReason = candidateRowsExamined > executionLimits.maxCandidateRows ? "candidate_limit" : "time_limit";
       break;
     }
     if (excluded.has(candidate.message.messageId)) {
@@ -82,17 +85,22 @@ export function discoverMessages(
     evidence.push(candidateEvidence);
     if (evidence.length === limit) {
       selectionComplete = false;
+      stopReason = "item_limit";
       break;
     }
   }
 
-  const shape = measureMessages(database, query, executionLimits);
+  const shape = measureMessages(database, query, {
+    maxCandidateRows: Math.max(0, executionLimits.maxCandidateRows - candidateRowsExamined),
+    maxMilliseconds: Math.max(0, executionLimits.maxMilliseconds - (performance.now() - startedAt)),
+  });
   return {
     candidateRowsExamined: candidateRowsExamined + shape.candidateRowsExamined,
     durationMilliseconds: performance.now() - startedAt,
     evidence,
     query,
     selectionComplete: selectionComplete && shape.outcome === "complete",
+    stopReason,
     shape,
   };
 }

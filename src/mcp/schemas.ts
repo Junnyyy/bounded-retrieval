@@ -19,11 +19,11 @@ const filtersSchema = z.strictObject({
     )
     .max(4)
     .optional(),
-  from_inclusive: z.number().int().safe().nullable().optional(),
+  from_inclusive: z.number().int().safe().nullable().optional().describe("Inclusive UTC Unix timestamp in milliseconds."),
   sender_ids: z.array(z.string().trim().min(1)).max(100).optional(),
   sender_types: z.array(z.enum(["internal", "client"])).max(2).optional(),
   thread_ids: z.array(z.string().trim().min(1)).max(100).optional(),
-  to_exclusive: z.number().int().safe().nullable().optional(),
+  to_exclusive: z.number().int().safe().nullable().optional().describe("Exclusive UTC Unix timestamp in milliseconds."),
 });
 
 export const structuredQuerySchema = z.strictObject({
@@ -73,7 +73,7 @@ const limitsSchema = z.strictObject({
   response_bytes: z.number().int().positive(),
 });
 
-export const resultEnvelopeSchema = z.strictObject({
+const envelopeFields = {
   corpus_version: z.string(),
   disclosure: disclosureSchema,
   limits: limitsSchema,
@@ -81,10 +81,103 @@ export const resultEnvelopeSchema = z.strictObject({
   omitted: z.number().int().nonnegative().nullable(),
   outcome: z.enum(["complete", "incomplete"]),
   query_ref: z.string(),
-  result: z.record(z.string(), z.unknown()),
-  result_kind: z.string(),
-  schema_version: z.literal("1"),
+  schema_version: z.literal("2"),
   truncated: z.boolean(),
+};
+
+const count = z.number().int().nonnegative();
+const scanReason = z.enum(["candidate_limit", "time_limit"]);
+const stopReasons = z.array(z.enum([
+  "item_limit", "candidate_limit", "time_limit", "response_byte_limit",
+  "query_byte_limit", "context_window", "text_clipped",
+]));
+const metrics = z.strictObject({ conversations: count, messages: count, occurrences: count, threads: count });
+const timeBuckets = z.array(z.strictObject({ day: z.string(), messages: count }));
+const sender = z.strictObject({
+  id: z.string(), name: z.string(), organization: z.string(), type: z.enum(["client", "internal"]),
+});
+const conversation = z.strictObject({
+  id: z.string(), name: z.string(),
+  type: z.enum(["public_channel", "private_channel", "direct_message", "group_direct_message"]),
+});
+const evidence = z.strictObject({
+  conversation,
+  matched_roles: z.array(z.enum(["canonical", "alias"])),
+  message_ref: z.string(), sender, sent_at: z.string(), snippet: z.string(),
+  snippet_clipped: z.boolean(), thread_ref: z.string(),
+});
+
+export const measureOutputSchema = z.strictObject({
+  ...envelopeFields,
+  result_kind: z.literal("measurement"),
+  result: z.strictObject({
+    candidate_rows_examined: count,
+    normalized_query: structuredQuerySchema,
+    metrics: metrics.optional(),
+    provenance: z.strictObject({ alias: metrics, canonical: metrics }).optional(),
+    time_buckets: timeBuckets.optional(),
+    reason: scanReason.optional(),
+    stop_reasons: stopReasons,
+  }),
+});
+
+export const discoverOutputSchema = z.strictObject({
+  ...envelopeFields,
+  result_kind: z.literal("discovery"),
+  result: z.strictObject({
+    candidate_rows_examined: count,
+    evidence: z.array(evidence).max(8),
+    normalized_query: structuredQuerySchema,
+    selection: z.strictObject({
+      kind: z.literal("ranked_thread_diverse"),
+      exhaustive: z.boolean(), stop_reasons: stopReasons,
+    }),
+    shape: z.strictObject({ metrics: metrics.optional(), time_buckets: timeBuckets.optional(), reason: scanReason.optional() }),
+  }),
+});
+
+export const sampleOutputSchema = z.strictObject({
+  ...envelopeFields,
+  result_kind: z.literal("sample"),
+  result: z.strictObject({
+    candidate_rows_examined: count,
+    evidence: z.array(evidence).max(8),
+    population: z.strictObject({
+      unit: z.literal("message"), excludes_disclosed: z.literal(true),
+      messages: count.nullable(), strata: count.nullable(),
+    }),
+    selection: z.strictObject({
+      kind: z.enum(["uniform", "across_time", "across_conversations"]),
+      seed: z.string(), exhaustive: z.boolean(), returned_strata: count,
+      stop_reasons: stopReasons,
+    }),
+  }),
+});
+
+export const expandContextOutputSchema = z.strictObject({
+  ...envelopeFields,
+  result_kind: z.literal("message_context"),
+  result: z.strictObject({
+    anchor_message_id: z.string(), clipped_after: z.boolean(), clipped_before: z.boolean(),
+    context_kind: z.enum(["conversation", "thread"]),
+    messages: z.array(z.strictObject({
+      message_id: z.string(), message_ref: z.string(), reply_to_message_id: z.string().nullable(),
+      sender, sent_at: z.string(), text: z.string(), text_clipped: z.boolean(),
+    })).max(20),
+    stop_reasons: stopReasons,
+  }),
+});
+
+export const exportOutputSchema = z.strictObject({
+  ...envelopeFields,
+  result_kind: z.literal("export"),
+  result: z.strictObject({
+    outcome: z.enum(["complete", "incomplete"]),
+    artifact_path: z.string().optional(), bytes: count.optional(), corpus_version: z.string().optional(),
+    format: z.literal("jsonl").optional(), message_ids_sha256: z.string().optional(),
+    mime_type: z.literal("application/x-ndjson").optional(), rows: count.optional(), sha256: z.string().optional(),
+    candidate_rows_examined: count.optional(), reason: scanReason.optional(),
+  }),
 });
 
 export type StructuredQueryInput = z.infer<typeof structuredQuerySchema>;

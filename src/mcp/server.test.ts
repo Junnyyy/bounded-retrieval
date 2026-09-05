@@ -117,9 +117,32 @@ test("serves all bounded tools over MCP stdio", async (context) => {
     name: "measure_messages",
   })) as {
     readonly content: readonly { readonly text: string; readonly type: string }[];
-    readonly structuredContent: { readonly result_kind: string };
+    readonly structuredContent: { readonly result_kind: string; readonly query_ref: string; readonly schema_version: string };
   };
   assert.equal(callResult.content[0]?.type, "text");
   assert.equal(callResult.structuredContent.result_kind, "measurement");
   assert.ok(Buffer.byteLength(callResult.content[0]?.text ?? "") > 0);
+  assert.equal(callResult.structuredContent.schema_version, "2");
+
+  const query = { clauses: [{ match: "literal", role: "canonical", text: "OpenAI" }], combine: "all" };
+  async function call(name: string, args: Record<string, unknown>) {
+    const response = await client.request("tools/call", { name, arguments: args }) as {
+      isError?: boolean;
+      content: { type: string; text: string }[];
+      structuredContent: {
+        disclosure: { response_bytes: number };
+        result: { evidence?: { message_ref: string }[] };
+      };
+    };
+    assert.notEqual(response.isError, true, JSON.stringify(response));
+    assert.deepEqual(JSON.parse(response.content[0]!.text), response.structuredContent);
+    assert.equal(Buffer.byteLength(JSON.stringify(response), "utf8"), response.structuredContent.disclosure.response_bytes);
+    assert.ok(response.structuredContent.disclosure.response_bytes <= 16 * 1_024);
+    return response;
+  }
+  const discovered = await call("discover_messages", { query, limit: 2 });
+  const queryRef = callResult.structuredContent.query_ref;
+  await call("sample_messages", { query_ref: queryRef, strategy: "uniform", limit: 2 });
+  await call("expand_message_context", { query_ref: queryRef, message_ref: discovered.structuredContent.result.evidence![0]!.message_ref, limit: 1 });
+  await call("export_messages", { query_ref: queryRef });
 });

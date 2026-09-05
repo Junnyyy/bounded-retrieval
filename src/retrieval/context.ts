@@ -18,6 +18,7 @@ export interface ContextResult {
   readonly clippedBefore: boolean;
   readonly contextKind: "conversation" | "thread";
   readonly messages: readonly ContextMessage[];
+  readonly totalMessages: number;
 }
 
 function getMessage(database: DatabaseSync, messageId: string): MessageRecord {
@@ -91,8 +92,8 @@ export function expandMessageContext(
       ? getMessage(database, possibleRootId)
       : null;
   const reserved = new Map<string, MessageRecord>();
-  if (root !== null) reserved.set(root.messageId, root);
   reserved.set(anchor.messageId, anchor);
+  if (root !== null && limit > 1) reserved.set(root.messageId, root);
   const remaining = Math.max(0, limit - reserved.size);
   const rootExclusion = root === null ? "" : "AND message_id <> ?";
   const rootParameters: SQLInputValue[] =
@@ -146,10 +147,11 @@ export function expandMessageContext(
   return {
     anchorMessageId: anchor.messageId,
     clippedAfter: afterCount > after.length,
-    clippedBefore: beforeCount > before.length,
+    clippedBefore: beforeCount > before.length || (root !== null && !reserved.has(root.messageId)),
     contextKind,
     messages: messages.map((message) =>
       toContextMessage(message, metadata.version, MAX_CONTEXT_MESSAGE_CHARACTERS),
     ),
+    totalMessages: 1 + Number(root !== null) + beforeCount + afterCount,
   };
 }

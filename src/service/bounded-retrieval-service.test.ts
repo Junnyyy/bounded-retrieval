@@ -12,6 +12,7 @@ import {
 import { generateCorpus } from "../corpus/generate.ts";
 import type { CorpusProfile } from "../corpus/profiles.ts";
 import { BoundedRetrievalService } from "./bounded-retrieval-service.ts";
+import { discoverOutputSchema, measureOutputSchema, sampleOutputSchema, expandContextOutputSchema, exportOutputSchema } from "../mcp/schemas.ts";
 
 const PROFILE: CorpusProfile = {
   days: 7,
@@ -65,7 +66,6 @@ test("samples undisclosed evidence and expands only a disclosed anchor", () => {
   withService((service) => {
     const discovery = service.discoverMessages(QUERY);
     const discovered = discovery.envelope.result.evidence as readonly {
-      message_id: string;
       message_ref: string;
     }[];
     const sampled = service.sampleMessages(
@@ -74,12 +74,11 @@ test("samples undisclosed evidence and expands only a disclosed anchor", () => {
       "service-sample",
     );
     const sampledEvidence = sampled.envelope.result.evidence as readonly {
-      message_id: string;
       message_ref: string;
     }[];
     assert.equal(
       sampledEvidence.some((sample) =>
-        discovered.some((item) => item.message_id === sample.message_id),
+        discovered.some((item) => item.message_ref === sample.message_ref),
       ),
       false,
     );
@@ -130,5 +129,43 @@ test("equivalent repeated calls cannot reset cumulative disclosure", () => {
     const state = service.queryState(queryRef);
     assert.ok(state.disclosure.bytes <= RESULT_LIMITS.cumulativeQueryBytes);
     assert.ok(state.disclosure.remainingBytes < RESULT_LIMITS.measureBytes);
+  });
+});
+
+test("versioned outputs validate against their tool-specific contracts", () => {
+  withService((service) => {
+    const measurement = service.measureMessages(QUERY);
+    assert.ok(measureOutputSchema.safeParse(measurement.envelope).success);
+    assert.equal(measurement.envelope.schema_version, "2");
+    const discovery = service.discoverMessages(QUERY, 2);
+    assert.ok(discoverOutputSchema.safeParse(discovery.envelope).success);
+    assert.equal(discovery.envelope.result.selection !== undefined, true);
+    const first = (discovery.envelope.result.evidence as { message_ref: string }[])[0]!;
+    assert.equal("message_id" in first, false);
+    assert.equal("rank" in first, false);
+    const sampled = service.sampleMessages(discovery.envelope.query_ref, "uniform", "contract", 2);
+    assert.ok(sampleOutputSchema.safeParse(sampled.envelope).success);
+    const context = service.expandMessageContext(discovery.envelope.query_ref, first.message_ref, 1);
+    assert.ok(expandContextOutputSchema.safeParse(context.envelope).success);
+    const exported = service.exportMessages(discovery.envelope.query_ref);
+    assert.ok(exportOutputSchema.safeParse(exported.envelope).success);
+    assert.equal(discoverOutputSchema.safeParse(sampled.envelope).success, false);
+    for (const result of [measurement, discovery, sampled, context, exported]) {
+      assert.equal(serializedBytes(result.mcpResult), result.envelope.disclosure.response_bytes);
+    }
+  });
+});
+
+test("zero-match discovery is exact, empty, and offers no absent anchor", () => {
+  withService((service) => {
+    const result = service.discoverMessages({
+      clauses: [{ match: "literal", role: "canonical", text: "absentterm" }], combine: "all",
+    });
+    assert.equal(result.envelope.outcome, "complete");
+    assert.equal(result.envelope.truncated, false);
+    assert.equal(result.envelope.omitted, 0);
+    assert.deepEqual(result.envelope.next_actions, []);
+    assert.deepEqual(result.envelope.result.evidence, []);
+    assert.deepEqual(result.envelope.result.selection, { kind: "ranked_thread_diverse", exhaustive: true, stop_reasons: [] });
   });
 });

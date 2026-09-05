@@ -3,28 +3,31 @@ import type { ContextMessage, EvidenceRecord } from "../retrieval/evidence.ts";
 import type { NormalizedQuery } from "../retrieval/query.ts";
 
 export function serializeQuery(query: NormalizedQuery) {
+  const filters = {
+    ...(query.filters.conversationIds.length === 0 ? {} : { conversation_ids: query.filters.conversationIds }),
+    ...(query.filters.conversationTypes.length === 0 ? {} : { conversation_types: query.filters.conversationTypes }),
+    ...(query.filters.fromInclusive === null ? {} : { from_inclusive: query.filters.fromInclusive }),
+    ...(query.filters.senderIds.length === 0 ? {} : { sender_ids: query.filters.senderIds }),
+    ...(query.filters.senderTypes.length === 0 ? {} : { sender_types: query.filters.senderTypes }),
+    ...(query.filters.threadIds.length === 0 ? {} : { thread_ids: query.filters.threadIds }),
+    ...(query.filters.toExclusive === null ? {} : { to_exclusive: query.filters.toExclusive }),
+  };
   return {
     clauses: query.clauses,
     combine: query.combine,
-    filters: {
-      conversation_ids: query.filters.conversationIds,
-      conversation_types: query.filters.conversationTypes,
-      from_inclusive: query.filters.fromInclusive,
-      sender_ids: query.filters.senderIds,
-      sender_types: query.filters.senderTypes,
-      thread_ids: query.filters.threadIds,
-      to_exclusive: query.filters.toExclusive,
-    },
+    ...(Object.keys(filters).length === 0 ? {} : { filters }),
   };
 }
 
 export function serializeEvidence(evidence: EvidenceRecord) {
   return {
-    conversation: evidence.conversation,
+    conversation: {
+      id: evidence.conversation.id,
+      name: evidence.conversation.name,
+      type: evidence.conversation.type,
+    },
     matched_roles: evidence.matchedRoles,
-    message_id: evidence.messageId,
     message_ref: evidence.messageRef,
-    rank: evidence.rank,
     sender: evidence.sender,
     sent_at: evidence.sentAt,
     snippet: evidence.snippet,
