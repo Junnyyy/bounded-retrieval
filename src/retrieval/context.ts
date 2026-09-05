@@ -19,6 +19,7 @@ export interface ContextResult {
   readonly contextKind: "conversation" | "thread";
   readonly messages: readonly ContextMessage[];
   readonly totalMessages: number;
+  readonly rootMessageId: string | null;
 }
 
 function getMessage(database: DatabaseSync, messageId: string): MessageRecord {
@@ -153,5 +154,6 @@ export function expandMessageContext(
       toContextMessage(message, metadata.version, MAX_CONTEXT_MESSAGE_CHARACTERS),
     ),
     totalMessages: 1 + Number(root !== null) + beforeCount + afterCount,
+    rootMessageId: contextKind === "thread" ? possibleRootId : null,
   };
 }

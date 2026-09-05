@@ -239,6 +239,7 @@ export class BoundedRetrievalService {
     }
     const context = expandMessageContext(this.#database, messageId, requestedLimit);
     const messages = [...context.messages];
+    const anchorIndex = context.messages.findIndex((message) => message.messageId === messageId);
     let shrunk = false;
     const stopReasons = new Set<string>();
     if (context.clippedBefore || context.clippedAfter) stopReasons.add("context_window");
@@ -254,8 +255,8 @@ export class BoundedRetrievalService {
       result: () =>
         asRecord({
           anchor_message_id: context.anchorMessageId,
-          clipped_after: context.clippedAfter,
-          clipped_before: context.clippedBefore,
+          clipped_after: context.clippedAfter || context.messages.slice(anchorIndex + 1).some((message) => !messages.includes(message)),
+          clipped_before: context.clippedBefore || context.messages.slice(0, anchorIndex).some((message) => !messages.includes(message)),
           context_kind: context.contextKind,
           messages: messages.map(serializeContextMessage),
           stop_reasons: [...stopReasons, ...(messages.some((message) => message.textClipped) ? ["text_clipped"] : [])],
@@ -263,9 +264,16 @@ export class BoundedRetrievalService {
       resultKind: "message_context",
       shrink: (reasons) => {
         if (messages.length <= 1) return false;
-        const removableIndex = messages.findIndex(
-          (message) => message.messageId !== messageId,
-        );
+        // Keep the anchor and thread root longest; discard distant neighbors
+        // before the context that identifies what the reply is responding to.
+        let removableIndex = -1;
+        let farthest = -1;
+        for (const [index, message] of messages.entries()) {
+          if (message.messageId === messageId || message.messageId === context.rootMessageId) continue;
+          const distance = Math.abs(context.messages.indexOf(message) - anchorIndex);
+          if (distance > farthest) { farthest = distance; removableIndex = index; }
+        }
+        if (removableIndex === -1) removableIndex = messages.findIndex((message) => message.messageId !== messageId);
         if (removableIndex === -1) return false;
         messages.splice(removableIndex, 1);
         for (const reason of reasons) stopReasons.add(reason);

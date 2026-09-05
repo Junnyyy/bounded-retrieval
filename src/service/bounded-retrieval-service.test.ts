@@ -205,3 +205,26 @@ test("byte fitting reports the final transmitted selection and protects omitted 
     } finally { service.close(); }
   });
 });
+
+test("context fitting preserves the root and anchor and reports removed neighbors", () => {
+  withTestCorpus([
+    { messageId: "root", text: "Synthetic discussion root" },
+    ...Array.from({ length: 12 }, (_, index) => ({
+      messageId: `reply-${index}`, text: index === 6 ? "OpenAI anchor" : "😀".repeat(450),
+      threadRootMessageId: "root", replyToMessageId: "root",
+    })),
+  ], (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const discovery = service.discoverMessages(QUERY);
+      const reference = (discovery.envelope.result.evidence as { message_ref: string }[])[0]!.message_ref;
+      const result = service.expandMessageContext(discovery.envelope.query_ref, reference, 20);
+      const payload = result.envelope.result as { messages: { message_id: string }[]; clipped_before: boolean; clipped_after: boolean };
+      assert.ok(payload.messages.some((message) => message.message_id === "root"));
+      assert.ok(payload.messages.some((message) => message.message_id === "reply-6"));
+      assert.equal(result.envelope.omitted, 13 - payload.messages.length);
+      assert.ok(payload.clipped_before || payload.clipped_after);
+      assert.ok(result.bytes <= RESULT_LIMITS.expandContextBytes);
+    } finally { service.close(); }
+  });
+});
