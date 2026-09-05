@@ -40,3 +40,15 @@
 - Make small, atomic commits at working checkpoints.
 - Update this file when a durable project-specific constraint or learning emerges.
 - Do not create a pull request unless explicitly requested.
+
+## Discovery evaluation learnings
+
+- Snippet extraction and eligibility checks currently share compiled regular
+  expressions. Keep eligibility independent of matcher cursor state and row order;
+  a bounded sample must not become small because later valid rows were skipped.
+- Thread diversity and distinct text do not establish task relevance. Evaluate
+  qualitative support separately from byte savings using labels that remain
+  outside tool results and retrieval decisions.
+- Any duplicate grouping must compare full message text before clipping and state
+  the population over which repeat counts were computed. A representative's
+  attribution does not describe every sender in its group.
