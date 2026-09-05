@@ -90,7 +90,7 @@ The default evaluation uses **40,000 synthetic messages**, seed `bounded-retriev
 
 | Retrieval strategy | Calls | Total response bytes | Reduction vs. naïve |
 | --- | ---: | ---: | ---: |
-| Naïve full-row regex | 1 | 1,069,038 | — |
+| Naïve full-row regex | 1 | 1,069,038 | N/A |
 | Exact frequency measurement | 1 | 4,086 | 99.62% |
 | Three explicit lexical refinements for client concerns | 3 | 17,122 | 98.40% |
 
@@ -99,6 +99,66 @@ The naïve baseline scans all 40,000 rows and returns 1,159 matching messages. I
 The refined recipe retrieves visible support for **all five planted concern categories**. Against the corrected pre-optimization version of that same recipe, response bytes fell from 45,564 to 17,122 (**62.42%**) and coverage rose from four categories to five. Call count stayed at three. Matching and sampling corrections, compact schemas, duplicate-aware discovery, and context fitting are documented in the [implementation results](docs/discovery-results.md).
 
 The recipe is hand-authored and fixture-informed. Broad ranked discovery finds only two categories, and the former fixed discover/sample/expand sequence finds none. These benchmarks establish deterministic retrieval behavior; the brief live example above separately records one agent's choices and answer. Neither establishes language generalization or model-token savings. Reducing call count remains a goal; the implementation comparison demonstrates fewer response bytes and better evidence coverage.
+
+## Apply this to your own MCP
+
+Use this repository as a worked example of tool contracts and evaluation. Your
+server can use another database, domain, or host; the useful pattern is to do the
+large retrieval work outside model context and disclose enough evidence for the
+agent's next decision. Choose tool boundaries and budgets for your workload. The
+five tools and 16/48 KiB limits here are reference choices.
+
+1. **Start with one task and a definition of success.** Choose a question agents
+   actually need to answer. Write down the required facts, citations, and limits
+   on what the answer may claim. Build a small evaluation set with known answers,
+   including duplicates, rare evidence, empty results, and incomplete retrieval.
+   That gives you a way to detect when a smaller response has lost useful evidence.
+
+2. **Build the smallest useful operation first.** A counting question needs
+   aggregation, not records. An investigation needs selected evidence and enough
+   information about the matching population to interpret it. Include cheap counts
+   with discovery when that avoids a predictable extra call; add sampling, context,
+   or export only when a task needs them.
+
+3. **Design the response around the agent's next decision.** For an issue-tracker
+   MCP answering “What is blocking this release?”, return issue IDs, owners,
+   status, update times, and short supporting excerpts. Let the agent fetch a
+   selected discussion when necessary. Define input and output schemas, preserve
+   active filters and provenance, and distinguish complete counts from partial
+   evidence. The [SDK structured-output example](https://ts.sdk.modelcontextprotocol.io/v2/servers/tools)
+   shows the schema and result mechanism used here.
+
+4. **Enforce limits at the serialization boundary.** Measure the complete result,
+   including compatibility text and SDK-added fields; a row limit alone cannot
+   bound long or Unicode-heavy records. Fit the output before transmission and
+   report what was omitted. If follow-up calls reuse a query, bind their references
+   to that query and data version, account for cumulative disclosure, and define
+   what happens when a reference expires or its budget runs out. Measure host
+   wrapping separately rather than assuming the server's counter covers it.
+
+5. **Compare whole investigations, with quality held accountable.** Save a baseline
+   before changing selection or formatting. First compare identical evidence in
+   smaller representations; then test whether different selection preserves or
+   improves support for the answer. Track all calls, output bytes, added prompt
+   bytes, latency, and actual model usage when available. Keep failures and missing
+   evidence visible alongside savings.
+
+6. **Test the tools through a real agent and host.** Inspect whether the agent
+   chooses the right filters, requests unnecessary context, or spends calls finding
+   tools. Our FX runs exposed all three costs. Put useful field-selection examples
+   and stopping guidance into tool descriptions or agent instructions, then compare
+   fresh sessions on the same tasks. Repeat across different wording and datasets
+   before treating a gain as general. Smaller server responses and better agent
+   decisions are separate things to verify.
+
+For implementation, study the [schemas](src/mcp/schemas.ts) and
+[tool descriptions](src/mcp/server.ts), the [result serializer](src/service/result-envelope.ts)
+and [budget orchestration](src/service/bounded-retrieval-service.ts), then the
+[query registry](src/session/query-registry.ts). Adapt the
+[evidence-quality scoring](src/evaluation/evidence-quality.ts) to your own success
+criteria, and use the [FX comparison](docs/fx-results.md) as an example of reporting
+both gains and remaining inefficiencies. This reference is not packaged as a
+reusable library; these are starting points to adapt and validate in your server.
 
 ## Test and reproduce the results
 
@@ -123,5 +183,4 @@ Use this sequence when assessing changes: preserve correctness and evidence cove
 ## Explore further
 
 - [Running guide](docs/running.md): corpus profiles, optional FX 0.0.7 setup, neutral/guided prompts, and source map.
-- [Future video outline](docs/video-demo.md): notes for a later recording.
 - [Implementation results](docs/discovery-results.md): measured comparisons, current response semantics, and remaining questions.

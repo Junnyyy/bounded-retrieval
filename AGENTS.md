@@ -40,9 +40,11 @@
 - Make small, atomic commits at working checkpoints.
 - Update this file when a durable project-specific constraint or learning emerges.
 - Do not create a pull request unless explicitly requested.
+- Avoid em dashes in project documentation.
 - Keep the README centered on purpose, design reasoning, research, measured
-  evidence, and reproducible checks. Put detailed setup in `docs/running.md` and
-  response semantics in `docs/discovery-results.md`. Verify README benchmark
+  evidence, applying the lessons to other MCPs, and reproducible checks. Put
+  detailed setup in `docs/running.md` and response semantics in
+  `docs/discovery-results.md`. Verify README benchmark
   claims against a fresh default evaluation; the week demo uses a different seed
   and corpus from the month benchmark.
 
