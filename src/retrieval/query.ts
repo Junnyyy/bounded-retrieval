@@ -164,7 +164,7 @@ export function normalizeQuery(
 
   return {
     clauses,
-    combine: query.combine,
+    combine: clauses.length === 1 ? "all" : query.combine,
     filters: {
       conversationIds,
       conversationTypes,
