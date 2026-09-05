@@ -136,7 +136,8 @@ What concerns did clients raise about OpenAI? Group the themes and cite the mess
 Look for relevant cited evidence, justified lexical refinements, optional sampling,
 and selective context expansion. Small responses alone do not establish success;
 the agent still has to choose useful queries and interpret the evidence. Watch the
-[recorded MCP demo](../mcp-demo.mp4) for an example of the live workflow.
+[recorded MCP demo in the README](../README.md#bounded-retrieval) for an example
+of the live workflow.
 
 ## Source map
 

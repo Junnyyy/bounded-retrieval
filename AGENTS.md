@@ -47,6 +47,8 @@
   `docs/discovery-results.md`. Verify README benchmark
   claims against a fresh default evaluation; the week demo uses a different seed
   and corpus from the month benchmark.
+- The README demo uses a GitHub-hosted video attachment. Link other docs to the
+  README demo and keep the duplicate MP4 out of the repository tree.
 
 ## Discovery evaluation learnings
 
