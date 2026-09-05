@@ -137,7 +137,7 @@ export class BoundedRetrievalService {
           normalized_query: serializeQuery(discovery.query),
           selection: {
             exhaustive: !incomplete && totalMessages === evidence.length,
-            kind: "ranked_thread_diverse",
+            kind: "ranked_exact_text_and_thread_diverse",
             stop_reasons: [...stopReasons, ...(evidence.some((item) => item.snippetClipped) ? ["text_clipped"] : [])],
           },
           shape:

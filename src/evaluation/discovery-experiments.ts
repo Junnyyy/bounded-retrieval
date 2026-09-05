@@ -29,7 +29,7 @@ export function runDiscoveryExperiments(options: {
       readonly durationMilliseconds: number;
       readonly candidateRowsExamined: number;
       readonly queryRef: string;
-      readonly outcome: string;
+      readonly outcome: "complete" | "incomplete";
       readonly quality: ReturnType<typeof scoreEvidence>;
     }[] = [];
     function record(tool: string, operation: () => Result): Result {

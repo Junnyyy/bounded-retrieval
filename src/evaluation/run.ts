@@ -27,6 +27,7 @@ export interface EvaluationRecord {
     readonly everyBoundedResultWithinCap: boolean;
     readonly frequencyResultReductionAtLeast90Percent: boolean;
     readonly queryBudgetWithinCap: boolean;
+    readonly refinedConcernCoverageComplete: boolean;
   };
   readonly corpus: {
     readonly messageCount: number;
@@ -46,6 +47,7 @@ export interface EvaluationRecord {
   };
   readonly scenarios: {
     readonly clientConcerns: ScenarioRecord;
+    readonly legacyClientConcerns: ScenarioRecord;
     readonly frequency: ScenarioRecord;
   };
   readonly schemaVersion: "2";
@@ -194,7 +196,7 @@ export function runDeterministicEvaluation(options: {
     naive,
     [asToolCall("measure_messages", measured)],
   );
-  const clientConcerns = scenario(
+  const legacyClientConcerns = scenario(
     "What concerns did clients raise about OpenAI?",
     naive,
     [
@@ -203,10 +205,20 @@ export function runDeterministicEvaluation(options: {
       asToolCall("expand_message_context", expanded),
     ],
   );
+  const discoveryExperiments = runDiscoveryExperiments(options);
+  const refined = discoveryExperiments.find((experiment) => experiment.name === "refined_lexical")!;
+  const clientConcerns = {
+    ...scenario("What concerns did clients raise about OpenAI? (hand-authored lexical refinements)", naive,
+      refined.calls.map((call) => ({ bytes: call.bytes, name: call.tool, outcome: call.outcome, queryRef: call.queryRef, resultKind: "discovery" }))),
+    quality: refined.quality,
+  };
   const measuredPayload = measured.envelope.result as {
     readonly metrics?: { readonly messages?: unknown; readonly occurrences?: unknown; readonly threads?: unknown; readonly conversations?: unknown };
   };
-  const calls = [...frequency.bounded.calls, ...clientConcerns.bounded.calls];
+  const calls = [...frequency.bounded.calls, ...legacyClientConcerns.bounded.calls,
+    ...discoveryExperiments.flatMap((experiment) => experiment.calls.map((call) => ({
+      bytes: call.bytes, name: call.tool, outcome: call.outcome, queryRef: call.queryRef, resultKind: "discovery_experiment",
+    })))];
   const record: EvaluationRecord = {
     assertions: {
       exactCountMatchesGroundTruth:
@@ -217,13 +229,15 @@ export function runDeterministicEvaluation(options: {
         measuredPayload.metrics.threads === options.groundTruth.openAi.distinctThreads &&
         measuredPayload.metrics.conversations === options.groundTruth.openAi.distinctConversations,
       everyBoundedResultWithinCap: calls.every(
-        (call) => call.bytes <= RESULT_LIMITS.responseBytes,
+        (call) => call.bytes <= (call.name === "measure_messages" ? RESULT_LIMITS.measureBytes
+          : call.name === "expand_message_context" ? RESULT_LIMITS.expandContextBytes : RESULT_LIMITS.responseBytes),
       ),
       frequencyResultReductionAtLeast90Percent:
         frequency.reductionPercent >= 90,
       queryBudgetWithinCap:
-        clientConcerns.bounded.totalResultBytes <=
-        RESULT_LIMITS.cumulativeQueryBytes,
+        legacyClientConcerns.bounded.totalResultBytes <= RESULT_LIMITS.cumulativeQueryBytes &&
+        discoveryExperiments.every((experiment) => experiment.queryBudgetsWithinCap),
+      refinedConcernCoverageComplete: refined.quality.allCategoriesSupported,
     },
     corpus: {
       messageCount: metadata.messageCount,
@@ -236,10 +250,10 @@ export function runDeterministicEvaluation(options: {
       mode: "deterministic",
       note: "No model was called. This isolates retrieval correctness and full MCP-compatible result bytes; live FX runs are recorded separately.",
     },
-    discoveryExperiments: runDiscoveryExperiments(options),
+    discoveryExperiments,
     generatedAt: new Date().toISOString(),
     runtime: { node: process.version },
-    scenarios: { clientConcerns: { ...clientConcerns, quality: scoreEvidence([discovered, sampled, expanded], options.groundTruth) }, frequency },
+    scenarios: { clientConcerns, legacyClientConcerns: { ...legacyClientConcerns, quality: scoreEvidence([discovered, sampled, expanded], options.groundTruth) }, frequency },
     schemaVersion: "2",
   };
 

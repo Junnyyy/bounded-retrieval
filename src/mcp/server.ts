@@ -122,7 +122,7 @@ export function createBoundedRetrievalServer(options: {
     {
       annotations: { readOnlyHint: true, openWorldHint: false },
       description:
-        "Start a bounded qualitative investigation. Returns a compact result-set shape, ranked evidence diversified by thread, stable message references, and a process-scoped query_ref. Use for questions about themes, concerns, or representative evidence. Do not use to retrieve every match.",
+        "Discover ranked lexical evidence, diversified by exact full text and thread. Returns counts, time distribution, citations, and query_ref. same_text_matches counts identical text across the exact query population; the cited sender is one representative. Lexical rank and text diversity do not establish theme coverage. Refine terms or sample when the evidence does not address the question.",
       inputSchema: discoverInputSchema,
       outputSchema: discoverOutputSchema,
       title: "Discover messages",

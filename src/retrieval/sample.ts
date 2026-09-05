@@ -118,15 +118,13 @@ export function sampleMessages(
   const selected: EvidenceRecord[] = [];
   // Choose strata by seeded priority, not chronological or ID order. Sampling
   // remains over messages; removing same-thread rows would bias that population.
-  const orderedBuckets = Array.from(buckets.entries()).sort(([left], [right]) =>
-    score(options.seed, options.strategy, `stratum:${left}`).localeCompare(
-      score(options.seed, options.strategy, `stratum:${right}`),
-    ) || left.localeCompare(right),
-  );
+  const orderedBuckets = Array.from(buckets, ([key, bucket]) => ({
+    key, bucket, score: score(options.seed, options.strategy, `stratum:${key}`),
+  })).sort((left, right) => left.score.localeCompare(right.score) || left.key.localeCompare(right.key));
   let position = 0;
   while (selected.length < limit) {
     let added = false;
-    for (const [, bucket] of orderedBuckets) {
+    for (const { bucket } of orderedBuckets) {
       const candidate = bucket[position];
       if (candidate !== undefined) {
         selected.push(candidate.evidence);

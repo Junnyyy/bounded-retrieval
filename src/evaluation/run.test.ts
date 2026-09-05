@@ -42,6 +42,7 @@ test("records a bounded comparison against the naive full-row result", () => {
       assert.equal(experiment.quality.supportedCategories.length + experiment.quality.missingCategories.length,
         generated.groundTruth.concerns.length);
     }
+    assert.equal(record.discoveryExperiments.find((item) => item.name === "refined_lexical")?.quality.allCategoriesSupported, true);
     assert.ok(existsSync(outputPath));
   } finally {
     rmSync(directory, { force: true, recursive: true });

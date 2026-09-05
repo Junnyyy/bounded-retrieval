@@ -33,6 +33,7 @@ export function serializeEvidence(evidence: EvidenceRecord) {
     snippet: evidence.snippet,
     snippet_clipped: evidence.snippetClipped,
     thread_ref: evidence.threadRef,
+    ...(evidence.sameTextMatches === undefined ? {} : { same_text_matches: evidence.sameTextMatches }),
   };
 }
 

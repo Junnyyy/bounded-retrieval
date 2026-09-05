@@ -2,6 +2,7 @@ import { performance } from "node:perf_hooks";
 import type { DatabaseSync } from "node:sqlite";
 
 import { readCorpusMetadata } from "../database/corpus.ts";
+import { threadIdentity } from "../domain/message.ts";
 import { iterateCandidates } from "./candidates.ts";
 import { evidenceCompiler, toEvidence, type EvidenceRecord } from "./evidence.ts";
 import {
@@ -20,7 +21,6 @@ export interface DiscoveryResult {
   readonly durationMilliseconds: number;
   readonly evidence: readonly EvidenceRecord[];
   readonly query: NormalizedQuery;
-  readonly selectionComplete: boolean;
   readonly stopReason: "item_limit" | "candidate_limit" | "time_limit" | null;
   readonly shape: MeasureResult;
 }
@@ -49,10 +49,16 @@ export function discoverMessages(
   const executionLimits = options.executionLimits ?? DEFAULT_EXECUTION_LIMITS;
   const excluded = options.excludeMessageIds ?? new Set<string>();
   const selectedThreads = new Set<string>();
+  const selectedTexts = new Map<string, {
+    readonly messageId: string;
+    messages: number;
+    readonly senders: Set<string>;
+    readonly conversations: Set<string>;
+    readonly threads: Set<string>;
+  }>();
   const evidence: EvidenceRecord[] = [];
   const startedAt = performance.now();
   let candidateRowsExamined = 0;
-  let selectionComplete = true;
   let stopReason: DiscoveryResult["stopReason"] = null;
 
   for (const candidate of iterateCandidates(database, query, { ranked: true })) {
@@ -61,13 +67,13 @@ export function discoverMessages(
       candidateRowsExamined > executionLimits.maxCandidateRows ||
       performance.now() - startedAt > executionLimits.maxMilliseconds
     ) {
-      selectionComplete = false;
       stopReason = candidateRowsExamined > executionLimits.maxCandidateRows ? "candidate_limit" : "time_limit";
       break;
     }
     if (excluded.has(candidate.message.messageId)) {
       continue;
     }
+    if (selectedTexts.has(candidate.message.text)) continue;
     const candidateEvidence = toEvidence(candidate.message, {
       clauses,
       corpusVersion: metadata.version,
@@ -82,9 +88,12 @@ export function discoverMessages(
       continue;
     }
     selectedThreads.add(candidateEvidence.threadRef);
+    selectedTexts.set(candidate.message.text, {
+      messageId: candidateEvidence.messageId,
+      messages: 0, senders: new Set(), conversations: new Set(), threads: new Set(),
+    });
     evidence.push(candidateEvidence);
     if (evidence.length === limit) {
-      selectionComplete = false;
       stopReason = "item_limit";
       break;
     }
@@ -93,13 +102,30 @@ export function discoverMessages(
   const shape = measureMessages(database, query, {
     maxCandidateRows: Math.max(0, executionLimits.maxCandidateRows - candidateRowsExamined),
     maxMilliseconds: Math.max(0, executionLimits.maxMilliseconds - (performance.now() - startedAt)),
+  }, (message) => {
+    // The existing measurement pass counts selected full-text groups over the
+    // entire exact population, including rows before a representative was chosen.
+    const group = selectedTexts.get(message.text);
+    if (group === undefined) return;
+    group.messages += 1;
+    group.senders.add(message.senderId);
+    group.conversations.add(message.conversationId);
+    group.threads.add(threadIdentity(message));
   });
+  const groupCounts = new Map([...selectedTexts.values()].map((group) => [
+    group.messageId,
+    shape.outcome === "complete" ? {
+      messages: group.messages,
+      senders: group.senders.size,
+      conversations: group.conversations.size,
+      threads: group.threads.size,
+    } : null,
+  ]));
   return {
     candidateRowsExamined: candidateRowsExamined + shape.candidateRowsExamined,
     durationMilliseconds: performance.now() - startedAt,
-    evidence,
+    evidence: evidence.map((item) => ({ ...item, sameTextMatches: groupCounts.get(item.messageId) ?? null })),
     query,
-    selectionComplete: selectionComplete && shape.outcome === "complete",
     stopReason,
     shape,
   };

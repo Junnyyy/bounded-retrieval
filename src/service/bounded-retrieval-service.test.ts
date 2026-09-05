@@ -13,6 +13,7 @@ import { generateCorpus } from "../corpus/generate.ts";
 import type { CorpusProfile } from "../corpus/profiles.ts";
 import { BoundedRetrievalService } from "./bounded-retrieval-service.ts";
 import { discoverOutputSchema, measureOutputSchema, sampleOutputSchema, expandContextOutputSchema, exportOutputSchema } from "../mcp/schemas.ts";
+import { withTestCorpus } from "../testing/corpus.ts";
 
 const PROFILE: CorpusProfile = {
   days: 7,
@@ -166,6 +167,41 @@ test("zero-match discovery is exact, empty, and offers no absent anchor", () => 
     assert.equal(result.envelope.omitted, 0);
     assert.deepEqual(result.envelope.next_actions, []);
     assert.deepEqual(result.envelope.result.evidence, []);
-    assert.deepEqual(result.envelope.result.selection, { kind: "ranked_thread_diverse", exhaustive: true, stop_reasons: [] });
+    assert.deepEqual(result.envelope.result.selection, { kind: "ranked_exact_text_and_thread_diverse", exhaustive: true, stop_reasons: [] });
+  });
+});
+
+test("aggregate repeat counts do not authorize undisclosed group members", () => {
+  withTestCorpus([{ text: "OpenAI concern" }, { text: "OpenAI concern" }], (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const result = service.discoverMessages(QUERY);
+      const evidence = result.envelope.result.evidence as { message_ref: string; same_text_matches: { messages: number } }[];
+      assert.equal(evidence.length, 1);
+      assert.equal(evidence[0]?.same_text_matches.messages, 2);
+      assert.throws(() => service.expandMessageContext(result.envelope.query_ref,
+        `corpus://${service.corpusVersion}/messages/message-1`), /only be expanded from evidence disclosed/u);
+    } finally { service.close(); }
+  });
+});
+
+test("byte fitting reports the final transmitted selection and protects omitted anchors", () => {
+  withTestCorpus(Array.from({ length: 8 }, (_, index) => ({
+    text: `OpenAI synthetic statement number ${index}`,
+    senderOrganization: "😀".repeat(500),
+  })), (_database, path) => {
+    const service = new BoundedRetrievalService(path, join(path, "..", "exports"));
+    try {
+      const result = service.discoverMessages(QUERY);
+      const evidence = result.envelope.result.evidence as { message_ref: string }[];
+      const selection = result.envelope.result.selection as { exhaustive: boolean; stop_reasons: string[] };
+      assert.ok(evidence.length > 0 && evidence.length < 8);
+      assert.equal(result.envelope.omitted, 8 - evidence.length);
+      assert.equal(selection.exhaustive, false);
+      assert.ok(selection.stop_reasons.includes("response_byte_limit"));
+      assert.equal(result.bytes, serializedBytes(result.mcpResult));
+      assert.ok(result.bytes <= RESULT_LIMITS.responseBytes);
+      assert.equal(service.queryState(result.envelope.query_ref).disclosure.messageCount, evidence.length);
+    } finally { service.close(); }
   });
 });

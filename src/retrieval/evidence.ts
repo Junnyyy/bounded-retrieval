@@ -13,6 +13,12 @@ import {
 } from "./references.ts";
 
 export interface EvidenceRecord {
+  readonly sameTextMatches?: {
+    readonly messages: number;
+    readonly senders: number;
+    readonly conversations: number;
+    readonly threads: number;
+  } | null;
   readonly conversation: {
     readonly id: string;
     readonly name: string;

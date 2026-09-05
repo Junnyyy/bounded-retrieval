@@ -100,11 +100,16 @@ const conversation = z.strictObject({
   id: z.string(), name: z.string(),
   type: z.enum(["public_channel", "private_channel", "direct_message", "group_direct_message"]),
 });
-const evidence = z.strictObject({
+const evidenceFields = {
   conversation,
   matched_roles: z.array(z.enum(["canonical", "alias"])),
   message_ref: z.string(), sender, sent_at: z.string(), snippet: z.string(),
   snippet_clipped: z.boolean(), thread_ref: z.string(),
+};
+const evidence = z.strictObject(evidenceFields);
+const discoveryEvidence = z.strictObject({
+  ...evidenceFields,
+  same_text_matches: z.strictObject({ messages: count, senders: count, conversations: count, threads: count }).nullable(),
 });
 
 export const measureOutputSchema = z.strictObject({
@@ -126,10 +131,10 @@ export const discoverOutputSchema = z.strictObject({
   result_kind: z.literal("discovery"),
   result: z.strictObject({
     candidate_rows_examined: count,
-    evidence: z.array(evidence).max(8),
+    evidence: z.array(discoveryEvidence).max(8),
     normalized_query: structuredQuerySchema,
     selection: z.strictObject({
-      kind: z.literal("ranked_thread_diverse"),
+      kind: z.literal("ranked_exact_text_and_thread_diverse"),
       exhaustive: z.boolean(), stop_reasons: stopReasons,
     }),
     shape: z.strictObject({ metrics: metrics.optional(), time_buckets: timeBuckets.optional(), reason: scanReason.optional() }),
