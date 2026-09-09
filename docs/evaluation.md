@@ -167,3 +167,26 @@ fitting, omission counts, and anchor access, including real MCP stdio calls to a
 five tools. Saved checks on a new week seed and two new month seeds recover all
 five categories with the fixed recipe. They reuse wording templates and do not
 establish language generalization.
+
+## Additional seed checks
+
+A fresh default run and three additional seeds tested whether the deterministic
+results changed with fixture variation. No model was called and no retrieval code
+changed. All five assertions passed on every run.
+
+| Seed | Profile | Broad discovery categories | Discovery plus samples categories | Refined categories | Refined bytes |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `bounded-retrieval-evaluation-v1` | Month | 2 | 3 | 5 | 17,122 |
+| `research-check-a` | Month | 2 | 2 | 5 | 17,168 |
+| `research-check-b` | Month | 2 | 3 | 5 | 17,070 |
+| `research-check-c` | Week | 2 | 3 | 5 | 12,962 |
+
+Discovery plus sampling does not consistently improve category coverage. Its
+three calls used 28,394–30,398 bytes across the additional seeds. The fixed
+refinement vocabulary remained effective, but every seed reused the generator's
+wording templates. This tests fixture variation, not independent language or
+agent query selection.
+
+The [curated results](examples/research-seed-checks.json) contain corpus versions,
+assertions, bytes, supported/missing categories, and a reproduction command.
+Full local traces remain in ignored `artifacts/evaluations/`.

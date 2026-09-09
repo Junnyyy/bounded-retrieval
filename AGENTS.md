@@ -59,6 +59,10 @@
   decision, support a claim, or help the reader apply the approach. Remove repeated
   caveats and development history; retain qualifications beside the relevant claims.
 - Preserve the README video attachment URL exactly when editing documentation.
+- Keep research substantive: explain the design question, source guidance, chosen
+  mechanism, tradeoff, and experimental limits. Do not reduce it to a link list.
+- Describe 48 KiB as a per-normalized-query, process-lifetime disclosure budget.
+  Different queries have separate budgets; it is not a whole-investigation cap.
 
 ## Discovery evaluation learnings
 

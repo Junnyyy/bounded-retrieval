@@ -57,6 +57,7 @@ candidates, but original text determines lexical matches and counts. The
 
 The server limits every result to at most 16 KiB and charges equivalent normalized
 queries to a shared 48 KiB disclosure budget for the server process's lifetime.
+Distinct queries have separate budgets, so this is not a whole-investigation cap.
 Repeated requests consume that budget. Only message references actually returned
 to the agent authorize context expansion.
 
@@ -115,7 +116,10 @@ records.
 All data is synthetic. The deterministic recipes use known wording, and seed
 checks reuse those wording templates. Broad discovery misses three planted
 categories; the former fixed discovery/sample/expansion sequence finds none.
-Small responses alone do not establish a successful investigation.
+Across three additional seeds, discovery plus sampling supported only two or three
+categories, while the fixture-informed refinements supported all five. Extra calls
+and small responses alone do not establish a successful investigation. See the
+[seed checks](docs/evaluation.md#additional-seed-checks).
 
 A complete lexical scan does not establish semantic completeness. Samples do not
 estimate theme prevalence. The server reports incomplete scans, clipped evidence,

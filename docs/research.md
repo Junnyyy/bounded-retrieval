@@ -59,8 +59,10 @@ See the [implementation comparison](evaluation.md#implementation-comparison).
 Ranked discovery still returns only two of five planted categories. Diversity of
 text or threads is not a relevance test. Sampling adds another view of the matching
 population, but our samples are over previously undisclosed messages and can be
-stratified. They are not a basis for estimating theme prevalence. The agent must
-also distinguish a mention of a subject from a statement of concern about it.
+stratified. They are not a basis for estimating theme prevalence. Fresh seed checks found two or three categories with discovery plus sampling,
+compared with five for fixture-informed refinements. More calls did not reliably
+close the gap. The agent must also distinguish a mention of a subject from a
+statement of concern about it.
 
 ## Bound the response before transmission
 
