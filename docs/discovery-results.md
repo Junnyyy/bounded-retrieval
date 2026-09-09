@@ -129,7 +129,7 @@ To reproduce the default deterministic run, use the repository's `pnpm check` an
 
 The measured improvement is in response bytes and evidence quality; these
 deterministic comparisons do not reduce the number of calls or invoke a model.
-The separate [brief FX comparison](fx-results.md) records actual tool choices, host
+The separate [brief FX comparison](evaluation.md#live-agent-example) records actual tool choices, host
 overhead, and verified cited answers with and without added guidance. Broader
 agent-quality evaluation remains future work; per-run model tokens and cost were
 unavailable in those FX captures.

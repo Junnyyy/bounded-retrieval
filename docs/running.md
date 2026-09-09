@@ -82,7 +82,7 @@ README's month benchmark.
 FX **0.0.7** is a separately installed chat harness. The deterministic tests and
 evaluation do not require FX, a model, or provider credentials. A live agent session
 uses your configured model; model selection remains outside the retrieval layer.
-The [recorded brief comparison](fx-results.md) used `openai/gpt-5.6-luna` through AI
+The [recorded brief comparison](evaluation.md#live-agent-example) used `openai/gpt-5.6-luna` through AI
 Gateway in two fresh sessions. The server does not depend on that model.
 
 Install the pinned FX release using the official installer:
