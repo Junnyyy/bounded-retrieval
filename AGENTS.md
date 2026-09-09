@@ -44,11 +44,21 @@
 - Keep the README centered on purpose, design reasoning, research, measured
   evidence, applying the lessons to other MCPs, and reproducible checks. Put
   detailed setup in `docs/running.md` and response semantics in
-  `docs/discovery-results.md`. Verify README benchmark
+  `docs/discovery-results.md`. Keep deterministic and live measurement details in
+  `docs/evaluation.md`. Verify README benchmark
   claims against a fresh default evaluation; the week demo uses a different seed
   and corpus from the month benchmark.
 - The README demo uses a GitHub-hosted video attachment. Link other docs to the
   README demo and keep the duplicate MP4 out of the repository tree.
+
+## Documentation style
+
+- Write for engineers evaluating the design for similar retrieval problems.
+- Organize the README around problem, design, evidence, limitations, and application.
+- Use plain grammar and concrete mechanisms. Each paragraph should explain a
+  decision, support a claim, or help the reader apply the approach. Remove repeated
+  caveats and development history; retain qualifications beside the relevant claims.
+- Preserve the README video attachment URL exactly when editing documentation.
 
 ## Discovery evaluation learnings
 
