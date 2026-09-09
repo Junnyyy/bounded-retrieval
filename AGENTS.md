@@ -2,7 +2,9 @@
 
 ## Product boundary
 
-- This repository is an open-source reference demonstration, not a supported product or reusable library.
+- This repository is an Apache-2.0-licensed reference demonstration, not a supported product or reusable library.
+- Keep the README reuse statement aligned with the existing LICENSE, including
+  commercial reuse and redistribution conditions.
 - Use only deterministic synthetic Slack-style data. Never connect to Slack or ingest real workspace exports.
 - Keep the canonical corpus as one denormalized SQLite `messages` table plus its FTS5 index.
 - The agent interprets user intent. The server accepts structured queries and performs deterministic retrieval, measurement, filtering, ranking, sampling, and budgeting.
@@ -44,13 +46,31 @@
 - Keep the README centered on purpose, design reasoning, research, measured
   evidence, applying the lessons to other MCPs, and reproducible checks. Put
   detailed setup in `docs/running.md` and response semantics in
-  `docs/discovery-results.md`. Verify README benchmark
+  `docs/discovery-results.md`. Keep deterministic and live measurement details in
+  `docs/evaluation.md`. Verify README benchmark
   claims against a fresh default evaluation; the week demo uses a different seed
   and corpus from the month benchmark.
 - The README demo uses a GitHub-hosted video attachment. Link other docs to the
   README demo and keep the duplicate MP4 out of the repository tree.
 
+## Documentation style
+
+- Write for engineers evaluating the design for similar retrieval problems.
+- Organize the README around problem, design, evidence, limitations, and application.
+- Use plain grammar and concrete mechanisms. Each paragraph should explain a
+  decision, support a claim, or help the reader apply the approach. Remove repeated
+  caveats and development history; retain qualifications beside the relevant claims.
+- Preserve the README video attachment URL exactly when editing documentation.
+- Keep research substantive: explain the design question, source guidance, chosen
+  mechanism, tradeoff, and experimental limits. Do not reduce it to a link list.
+- Describe 48 KiB as a per-normalized-query, process-lifetime disclosure budget.
+  Different queries have separate budgets; it is not a whole-investigation cap.
+
 ## Discovery evaluation learnings
+
+- When comparing retrieval recipes, disclose their initial selection limits.
+  Standalone discovery uses eight excerpts; the sampling recipe starts with five.
+  Compare per-call coverage before attributing an improvement or failure to sampling.
 
 - Match counting supplies snippet offsets in one pass. Keep eligibility independent
   of matcher cursor state and row order; a bounded sample must not become small
@@ -92,3 +112,10 @@
   design projections once the implementation report covers their decisions.
 - Raw FX session exports can include local filesystem paths and host context.
   Keep them under ignored `artifacts/`; publish only curated example records.
+
+## Live evaluation interpretation
+
+- Score citation validity separately from planted-category coverage. A supported
+  topic outside the generator's five labels is not automatically a false finding.
+- Record exact model IDs and project context for live runs. A different prompt or
+  model makes a diagnostic case, not a controlled guidance comparison.

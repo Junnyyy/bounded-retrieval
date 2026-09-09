@@ -1,154 +1,106 @@
-# Running and exploring the reference
+# Running the reference
 
-Start with the [README](../README.md) for the purpose, design, benchmarks, and
-deterministic test workflow. This guide covers corpus options, the optional live
-demo, and where to find the implementation. Run commands from the repository root.
-
-This is a local reference demonstration, not a supported product or reusable
-library. Synthetic data and separate ground truth make the experiment reproducible;
-the MCP server never reads those labels or accepts real Slack data. V1 excludes
-real ingestion, authentication, hosted deployment, custom UI, embeddings, vector
-search, semantic counts, CI, and multi-model benchmarking. No license has been
-selected yet.
+Run commands from the repository root. All corpora are deterministic synthetic
+Slack-style data. The server does not ingest real Slack data or read evaluation
+labels. See the [README](../README.md) for the design and video demo.
 
 ## Runtime and dependencies
 
-Use Node **24.20.0** and native pnpm **11.18.0**, as pinned in
+Use Node 24.20.0 and native pnpm 11.18.0, pinned in
 [package.json](../package.json) and [.node-version](../.node-version).
-Install the committed dependency versions with:
 
 ```sh
 pnpm install --frozen-lockfile
 ```
 
-The frozen install preserves the lockfile and rejects an inconsistent manifest.
-See [pnpm install: frozen lockfile](https://pnpm.io/cli/install#--frozen-lockfile).
-Use native pnpm; do not substitute npm, Yarn, Bun, or Corepack. If registry or socket
-restrictions block installation, report the failure rather than bypassing them.
+The frozen install preserves the committed dependency versions and fails if the
+manifest and lockfile disagree. See [pnpm install: frozen lockfile](https://pnpm.io/cli/install#--frozen-lockfile).
+Use native pnpm. If registry or socket restrictions block installation, report the
+failure rather than bypassing them.
 
-The implementation uses built-in `node:sqlite` and TypeScript type stripping;
-`pnpm check` runs `tsc --noEmit` and `node:test`. Type stripping does not perform
-type checking, so both checks matter. See [Node 24: type stripping](https://nodejs.org/docs/latest-v24.x/api/typescript.html#type-stripping)
-and [Node 24: running tests from the command line](https://nodejs.org/docs/latest-v24.x/api/test.html#running-tests-from-the-command-line).
-These are version-line documentation links; the repository pins exact releases.
+## Deterministic checks
+
+```sh
+pnpm check
+pnpm evaluate -- --force
+```
+
+These commands require no model, provider credentials, or FX installation.
+`pnpm check` runs type checking and the test suite. The evaluator regenerates the
+40,000-message month fixture and writes `artifacts/evaluations/month.json` with
+counts, bytes, call traces, and supported/missing categories. All five assertions
+should pass. See [evaluation](evaluation.md) for expected results.
+
+Generated artifacts are ignored by Git. The week demo uses a different corpus and
+seed from this benchmark, so its counts will differ.
 
 ## Corpus profiles
 
-Every profile is deterministic synthetic Slack-style sales data with 20 people.
-The canonical `messages` table includes message, sender, conversation, thread,
-reply, and timestamp fields. Sender and conversation metadata is duplicated on
-each row; there are no normalized user or conversation tables. Internal generator
-metadata and an FTS5 index support reproducibility and retrieval.
-
-Literal `OpenAI` matching is case-insensitive and Unicode-boundary aware.
-`Open AI`, `Open-AI`, `OpenAÍ`, and `ChatGPT` do not silently count as literal
-matches; aliases require explicit query clauses and retain separate provenance.
-FTS5 finds candidates, while original message text defines exact occurrences.
-
 | Profile | Span | Messages | Use |
 | --- | ---: | ---: | --- |
-| `week` | 7 days | 10,000 | Default interactive demo |
-| `month` | 30 days | 40,000 | Default deterministic evaluation |
+| `week` | 7 days | 10,000 | Interactive demo |
+| `month` | 30 days | 40,000 | Deterministic evaluation |
 | `million` | 30 days | 1,000,000 | Artificial scale fixture |
 | `stress` | 30 days | 10,000,000 | Artificial stress fixture |
 
-Generate the default demo corpus explicitly:
+Each profile has 20 people and one denormalized `messages` table with an FTS5 index.
+Large profiles are available to generate; their availability does not establish
+validated scale performance. The evaluator accepts only `week` and `month`.
 
 ```sh
 pnpm seed -- --profile week
 ```
 
-It writes `artifacts/corpora/week.sqlite` and a neighboring ground-truth JSON file.
-The latter contains exact OpenAI counts and concern-category support IDs for
-evaluation; the MCP server never reads it. Seed generation refuses to overwrite an
-existing corpus unless you add `--force`. Use `--output` and `--seed` for a separate
-fixture. Large profiles are available to generate, but are not validated scale
-benchmarks merely because the generator supports them.
-
-The evaluator accepts only `week` and `month`. Its default month fixture uses a
-different seed and directory from the interactive demo:
-
-```sh
-pnpm evaluate -- --force
-```
-
-This regenerates `artifacts/evaluations/month.sqlite` and its ground truth, then
-writes the comparison to `artifacts/evaluations/month.json`. All generated
-artifacts are ignored by Git. Do not compare a week demo's counts with the
-README's month benchmark.
+This writes `artifacts/corpora/week.sqlite` and a neighboring ground-truth JSON file.
+Generation refuses to overwrite an existing corpus unless `--force` is supplied.
+Use `--output` and `--seed` for a separate fixture.
 
 ## Optional interactive demo with FX
 
-FX **0.0.7** is a separately installed chat harness. The deterministic tests and
-evaluation do not require FX, a model, or provider credentials. A live agent session
-uses your configured model; model selection remains outside the retrieval layer.
-The [recorded brief comparison](fx-results.md) used `openai/gpt-5.6-luna` through AI
-Gateway in two fresh sessions. The server does not depend on that model.
-
-Install the pinned FX release using the official installer:
+Install FX 0.0.7 separately using the
+[official installation guide](https://fx.sh/docs/getting-started/installation#review-the-installer-before-running-it)
+and configure your provider credentials. Then run:
 
 ```sh
-curl -fsSL https://fx.sh/setup.sh | bash -s -- v0.0.7
 pnpm fx
 ```
 
-See [FX installation: review the installer before running it](https://fx.sh/docs/getting-started/installation#review-the-installer-before-running-it)
-for the reviewable installation path and release-verification limitations. The
-installer does not check a signature or published checksum.
+The repository runner verifies Node and FX versions, disables FX auto-upgrades,
+generates the week corpus if absent, and launches FX. It does not download or update
+FX. [.fx.json](../.fx.json) sets the host result limit to 32 KiB, above the server's
+16 KiB ceiling, so host truncation cannot hide a server budget defect.
 
-The repository runner checks the Node and FX versions, disables FX auto-upgrades
-for the process, generates the week corpus if absent, and launches FX. It never
-downloads or updates FX. [.fx.json](../.fx.json) sets the host result limit to
-32 KiB, above the server's 16 KiB ceiling, so host truncation cannot hide a server
-budget defect.
-
-Review [.mcp.json](../.mcp.json), then approve this server in the FX shell:
+Review [.mcp.json](../.mcp.json), then approve the server in the FX shell:
 
 ```text
 /mcp trust approve bounded-retrieval
 ```
 
-FX keeps the approval in private settings rather than the repository. See
-[FX MCP: project configuration and trust](https://fx.sh/docs/capabilities/mcp#project-configuration-and-trust).
+See [FX MCP: project configuration and trust](https://fx.sh/docs/capabilities/mcp#project-configuration-and-trust).
+Give the agent either the [neutral](../instructions/neutral.md) or
+[guided](../instructions/guided.md) instructions. Use fresh sessions to compare them.
 
-Give the agent one instruction profile before asking a question. Use separate
-sessions when comparing them:
+Example questions:
 
-- [Neutral instructions](../instructions/neutral.md) describe the environment
-  without prescribing a retrieval strategy.
-- [Guided instructions](../instructions/guided.md) explain progressive disclosure
-  and when another call can resolve an evidence gap.
+> How often did OpenAI come up? Distinguish occurrences, messages, threads, and conversations.
 
-For measurement, ask:
+> What concerns did clients raise about OpenAI? Group the themes and cite the message references supporting each theme.
 
-```text
-How often did OpenAI come up? Distinguish occurrences, messages, threads, and conversations.
-```
-
-The efficient path is one `measure_messages` call with no message text.
-
-For discovery, ask:
-
-```text
-What concerns did clients raise about OpenAI? Group the themes and cite the message references supporting each theme.
-```
-
-Look for relevant cited evidence, justified lexical refinements, optional sampling,
-and selective context expansion. Small responses alone do not establish success;
-the agent still has to choose useful queries and interpret the evidence. Watch the
-[recorded MCP demo in the README](../README.md#bounded-retrieval) for an example
-of the live workflow.
+The first question can use one measurement call. For the second, inspect whether
+the answer has relevant citations and whether each additional call resolves an
+evidence gap. The [recorded live comparison](evaluation.md#live-agent-example)
+shows the calls and measurement boundaries used in two sessions.
 
 ## Source map
 
 | Directory | Responsibility |
 | --- | --- |
-| [src/corpus](../src/corpus/) | Deterministic generation and separate ground truth |
-| [src/retrieval](../src/retrieval/) | Structured queries, FTS candidates, exact verification, ranking, sampling, context |
-| [src/session](../src/session/) | Process-scoped query references and cumulative disclosure accounting |
-| [src/service](../src/service/) | Bounded orchestration and full-result byte measurement |
-| [src/mcp](../src/mcp/) | Strict schemas and the five-tool stdio server |
-| [src/evaluation](../src/evaluation/) | Naïve baseline, evidence-quality scoring, deterministic comparison |
-| [src/export](../src/export/) | Streaming local JSONL exports |
+| [src/corpus](../src/corpus/) | Synthetic generation and separate ground truth |
+| [src/retrieval](../src/retrieval/) | Queries, exact verification, ranking, sampling, and context |
+| [src/session](../src/session/) | Query references and disclosure accounting |
+| [src/service](../src/service/) | Orchestration and full-result byte measurement |
+| [src/mcp](../src/mcp/) | Schemas and five-tool stdio server |
+| [src/evaluation](../src/evaluation/) | Baseline, evidence scoring, and deterministic comparison |
+| [src/export](../src/export/) | Streaming JSONL exports |
 
-For field meanings and omission rules, see the [version 2 response contract](discovery-results.md#response-contract-version-2).
+See the [response reference](discovery-results.md) for field meanings and omission rules.
