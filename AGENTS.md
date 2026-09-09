@@ -106,3 +106,10 @@
   design projections once the implementation report covers their decisions.
 - Raw FX session exports can include local filesystem paths and host context.
   Keep them under ignored `artifacts/`; publish only curated example records.
+
+## Live evaluation interpretation
+
+- Score citation validity separately from planted-category coverage. A supported
+  topic outside the generator's five labels is not automatically a false finding.
+- Record exact model IDs and project context for live runs. A different prompt or
+  model makes a diagnostic case, not a controlled guidance comparison.

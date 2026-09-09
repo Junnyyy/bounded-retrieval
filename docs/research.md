@@ -160,9 +160,19 @@ support its answer. Added guidance avoided those choices in one paired example.
 However, both runs asked for only two concerns and both made avoidable calls.
 They do not establish broad discovery quality or a general benefit from guidance.
 
-The next useful test asks for distinct supported concerns without supplying a
-category count or fixture vocabulary. It should compare retrieved support with
-cited support, record missed categories, and include capability discovery in total
-calls and output bytes. Repeated sessions and independently authored wording are
-needed before claiming reliable agent improvements. See the
-[evaluation report](evaluation.md) for current evidence and reproducible checks.
+A [broader live test](evaluation.md#broader-live-investigation) asked for distinct
+concerns without supplying a category count. Five retrieval calls produced two
+supported topics, but only one planted category. The agent searched for the word
+`client`, left sender filters empty, and sampled the same narrow population. The
+server could apply that query exactly without making it appropriate for the task.
+
+This also exposes a limit in the evaluator. Vendor approval was a supported topic
+outside the five planted labels. Category coverage measures recall of those labels;
+it does not establish that every unlabelled answer is wrong. Citation validity and
+planted-category coverage need separate checks.
+
+A useful follow-up would compare explicit sender-filter and clause-role guidance
+against default instructions on the same model and prompt. Repeated sessions and
+independently authored wording are still needed before claiming reliable agent
+improvements. See the [evaluation report](evaluation.md) for current evidence and
+reproducible checks.

@@ -126,6 +126,13 @@ estimate theme prevalence. The server reports incomplete scans, clipped evidence
 and rejected requests explicitly, but the agent must interpret those states.
 
 The live runs do not establish general improvements in agent quality or latency.
+A [broader live investigation](docs/evaluation.md#broader-live-investigation) used
+five retrieval calls but covered only one of the five planted categories. It
+searched for the word `client` instead of filtering client senders. Both final
+citations were supported, including a vendor-approval topic outside the planted
+labels, but the investigation missed most labelled concerns. Bounded output did
+not ensure useful query choices.
+
 Per-run model tokens and cost were unavailable. Output bytes count each response
 once and do not measure repeated inclusion in later model requests.
 

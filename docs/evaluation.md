@@ -190,3 +190,60 @@ agent query selection.
 The [curated results](examples/research-seed-checks.json) contain corpus versions,
 assertions, bytes, supported/missing categories, and a reproduction command.
 Full local traces remain in ignored `artifacts/evaluations/`.
+
+## Broader live investigation
+
+A fresh FX 0.0.7 session asked for distinct supported client concerns without a
+target theme count, allowed at most six retrieval calls, and required citations
+and coverage limits in fewer than 300 words. It used the same 10,000-message week
+corpus as the earlier live example. The configured model was
+`openai/gpt-5.6-luna-fast`, with default FX and current project context and no guided
+profile prepended. The prompt prohibited file reads, terminal commands, web search,
+exports, modifications, and delegation.
+
+| Measurement | Observed |
+| --- | ---: |
+| Retrieval calls | 5 |
+| Capability search and tool-selection calls | 4 |
+| Total tool-output bytes | 42,997 |
+| Captured MCP retrieval bytes, including SDK metadata | 31,382 |
+| Server core retrieval bytes | 30,792 |
+| Saved session elapsed | 50.9 s |
+| Planted categories with visible and cited support | 1 of 5 |
+
+### What the agent did
+
+The first query required literal `OpenAI` and `client`, with no sender filter. It
+found 39 messages sharing the same vendor-approval wording. The agent expanded one
+result, then searched for `OpenAI` and `security`, which supplied a data-privacy
+concern. It sampled across conversations from the original narrow query and ended
+with an empty `OpenAI` plus `compliance` search. It marked the added words as aliases
+even though they were topical constraints, another mismatch between the query
+schema's meaning and the agent's use of it.
+
+All five retrieval calls succeeded. Captured MCP replies fit their tool caps and
+FX truncated no tool output. The largest cumulative query disclosure was 25,850
+bytes, below 48 KiB. Server-side selection remained non-exhaustive; a complete scan
+was not a complete disclosure.
+
+### What the answer established
+
+The answer cited data privacy (`message-000000504`) and vendor approval
+(`message-000003923`). Both were fully visible client-sender messages, and both
+texts match the corpus. Only data privacy belongs to the five planted categories.
+Vendor approval is supported by its text but lies outside those labels, so it is
+not counted as a false finding. Neither the retrieved evidence nor the final
+citations covered pricing, reliability, model quality, or vendor lock-in.
+
+The agent correctly declined prevalence and completeness claims. However, its
+39-message population was defined by the word `client`, not client authorship.
+Sampling that same population could not fix the original filter choice. Context
+expansion supplied no additional planted category. The server enforced its limits,
+but the investigation missed most of the labelled concerns.
+
+This is a diagnostic case, not a controlled comparison with the earlier sessions:
+the prompt, project context, and model differ. Per-run tokens and cost remained
+unavailable. The [curated record](examples/fx-broad-investigation.json) includes the
+exact prompt, answer, call arguments, captured retrieval results, citation checks,
+and output hashes. Personal capability-search payloads are omitted while their
+bytes remain in the totals.
