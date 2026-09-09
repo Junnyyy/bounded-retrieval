@@ -176,3 +176,23 @@ against default instructions on the same model and prompt. Repeated sessions and
 independently authored wording are still needed before claiming reliable agent
 improvements. See the [evaluation report](evaluation.md) for current evidence and
 reproducible checks.
+
+## How much evidence is enough for the next decision?
+
+The experiments establish behavior at chosen limits. They do not establish an
+optimal response size, number of excerpts, or arrangement of tools. Eight excerpts
+can answer a request for two examples and still fail a broader investigation.
+The required evidence depends on what the agent must decide.
+
+For an exact frequency question, completed counts may be sufficient. For a claim
+about a particular concern, a fully visible statement with attribution may support
+the claim. For coverage across clients or time periods, one ranked selection may
+leave gaps. The [annotated response](discovery-results.md#reading-a-discovery-result)
+shows which retained fields expose those differences.
+
+A useful experiment would vary result budgets and selection limits while keeping
+the corpus, task, model, and instructions fixed. It should measure cited support,
+missing evidence, total calls, and full-run usage when available. A smaller reply
+might cause more follow-up calls; a larger one might add no useful support. The
+question is whether the response enables the required decision at lower total
+cost. This reference has not yet measured that relationship across response sizes.

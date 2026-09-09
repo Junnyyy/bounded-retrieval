@@ -26,6 +26,33 @@ for a complete sample, and time buckets for measurement. It is null when unknown
 or inapplicable. Aggregate repeat counts do not reduce omitted message counts;
 those messages were counted, not individually disclosed.
 
+## Reading a discovery result
+
+The final discovery call in the [guided FX record](examples/fx-guided-run.json)
+searched client-authored messages containing `OpenAI`. The table below selects
+fields from that actual result; it is an annotation, not a complete response.
+
+| Information retained | Observed value | What it helps the agent decide |
+| --- | --- | --- |
+| Matching population | 105 messages; 118 occurrences; 10 conversations | How much data the lexical query covers. These are not concern-frequency estimates. |
+| Excerpt and attribution | Harper Tran, client at Atlas Works: "Our main OpenAI concern is pricing predictability as usage grows." | Whether a client statement supports the proposed pricing theme. |
+| Timestamp | January 5, 2026, 14:00 UTC | Whether this evidence is relevant to the requested period. |
+| Stable reference | `corpus://corpus-5e230f570d08e494/messages/message-000000001` | Which source to cite or use as an expansion anchor. |
+| Text clipping | `snippet_clipped: false` | The selected message text is fully visible. This says nothing about other messages. |
+| Selection and omissions | 8 excerpts returned; 97 messages omitted; `stop_reasons: [item_limit]` | Whether the returned evidence exhausts the matching population. It does not. |
+| Remaining query budget | 36,936 bytes | How much further disclosure this query allows. Remaining capacity does not justify another call by itself. |
+
+Here, `outcome: complete` and `truncated: true` coexist. The server completed the
+scan, but the item limit reduced the transmitted selection. Neither state cancels
+the other. The agent can cite the visible pricing statement while acknowledging
+that it has not inspected every matching message.
+
+This is why the response retains more than excerpts. Removing population and
+omission information makes partial evidence easier to mistake for a complete
+answer. Removing attribution or references makes the answer harder to verify.
+Another call is useful when it resolves a specific evidence gap, such as ambiguous
+wording or a missing time period, rather than merely using the available budget.
+
 ## Evidence and selection
 
 Discovery and sampling retain message/thread references, sender and conversation
