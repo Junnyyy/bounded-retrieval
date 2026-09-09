@@ -2,7 +2,9 @@
 
 ## Product boundary
 
-- This repository is an open-source reference demonstration, not a supported product or reusable library.
+- This repository is an Apache-2.0-licensed reference demonstration, not a supported product or reusable library.
+- Keep the README reuse statement aligned with the existing LICENSE, including
+  commercial reuse and redistribution conditions.
 - Use only deterministic synthetic Slack-style data. Never connect to Slack or ingest real workspace exports.
 - Keep the canonical corpus as one denormalized SQLite `messages` table plus its FTS5 index.
 - The agent interprets user intent. The server accepts structured queries and performs deterministic retrieval, measurement, filtering, ranking, sampling, and budgeting.

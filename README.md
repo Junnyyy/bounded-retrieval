@@ -181,3 +181,10 @@ The [running guide](docs/running.md) covers pinned dependencies, deterministic
 checks, corpus generation, and the optional FX demo. The default evaluation checks
 exact counts, response caps, query budgets, frequency byte reduction, and coverage
 of all five categories by the refined recipe.
+
+## License and reuse
+
+This work is licensed under the [Apache License 2.0](LICENSE). You can use, modify,
+and build on it, including in commercial projects, under the license's terms.
+When redistributing it or derivative works, include the license, retain applicable
+notices, and identify modified files. See the license for the complete conditions.
