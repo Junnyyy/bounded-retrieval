@@ -35,7 +35,8 @@
             "data_privacy",
             "model_quality",
             "reliability"
-          ]
+          ],
+          "strategy": "One client-filtered OpenAI discovery, up to eight items."
         },
         {
           "name": "ranked_then_sample",
@@ -49,6 +50,44 @@
           "missingCategories": [
             "model_quality",
             "vendor_lock_in"
+          ],
+          "strategy": "Client-filtered OpenAI discovery (five), then separate across-time and across-conversation samples (eight each).",
+          "cumulativeCoverageByCall": [
+            {
+              "tool": "discover_messages",
+              "supportedCategories": [],
+              "missingCategories": [
+                "data_privacy",
+                "model_quality",
+                "pricing",
+                "reliability",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "pricing",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "pricing",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "vendor_lock_in"
+              ]
+            }
           ]
         },
         {
@@ -62,7 +101,8 @@
             "reliability",
             "vendor_lock_in"
           ],
-          "missingCategories": []
+          "missingCategories": [],
+          "strategy": "Three hand-authored queries: OpenAI AND concern-prefix, OpenAI AND needs, OpenAI AND difficult, all client-filtered. Vocabulary is fixture-informed; this is not a live agent or held-out language result."
         }
       ]
     },
@@ -95,7 +135,8 @@
             "data_privacy",
             "model_quality",
             "reliability"
-          ]
+          ],
+          "strategy": "One client-filtered OpenAI discovery, up to eight items."
         },
         {
           "name": "ranked_then_sample",
@@ -109,6 +150,44 @@
             "model_quality",
             "pricing",
             "vendor_lock_in"
+          ],
+          "strategy": "Client-filtered OpenAI discovery (five), then separate across-time and across-conversation samples (eight each).",
+          "cumulativeCoverageByCall": [
+            {
+              "tool": "discover_messages",
+              "supportedCategories": [],
+              "missingCategories": [
+                "data_privacy",
+                "model_quality",
+                "pricing",
+                "reliability",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "pricing",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "pricing",
+                "vendor_lock_in"
+              ]
+            }
           ]
         },
         {
@@ -122,7 +201,8 @@
             "reliability",
             "vendor_lock_in"
           ],
-          "missingCategories": []
+          "missingCategories": [],
+          "strategy": "Three hand-authored queries: OpenAI AND concern-prefix, OpenAI AND needs, OpenAI AND difficult, all client-filtered. Vocabulary is fixture-informed; this is not a live agent or held-out language result."
         }
       ]
     },
@@ -155,7 +235,8 @@
             "data_privacy",
             "model_quality",
             "reliability"
-          ]
+          ],
+          "strategy": "One client-filtered OpenAI discovery, up to eight items."
         },
         {
           "name": "ranked_then_sample",
@@ -169,6 +250,44 @@
           "missingCategories": [
             "model_quality",
             "vendor_lock_in"
+          ],
+          "strategy": "Client-filtered OpenAI discovery (five), then separate across-time and across-conversation samples (eight each).",
+          "cumulativeCoverageByCall": [
+            {
+              "tool": "discover_messages",
+              "supportedCategories": [],
+              "missingCategories": [
+                "data_privacy",
+                "model_quality",
+                "pricing",
+                "reliability",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "reliability"
+              ],
+              "missingCategories": [
+                "data_privacy",
+                "model_quality",
+                "pricing",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "pricing",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "vendor_lock_in"
+              ]
+            }
           ]
         },
         {
@@ -182,7 +301,8 @@
             "reliability",
             "vendor_lock_in"
           ],
-          "missingCategories": []
+          "missingCategories": [],
+          "strategy": "Three hand-authored queries: OpenAI AND concern-prefix, OpenAI AND needs, OpenAI AND difficult, all client-filtered. Vocabulary is fixture-informed; this is not a live agent or held-out language result."
         }
       ]
     },
@@ -215,7 +335,8 @@
             "data_privacy",
             "model_quality",
             "reliability"
-          ]
+          ],
+          "strategy": "One client-filtered OpenAI discovery, up to eight items."
         },
         {
           "name": "ranked_then_sample",
@@ -229,6 +350,44 @@
           "missingCategories": [
             "model_quality",
             "vendor_lock_in"
+          ],
+          "strategy": "Client-filtered OpenAI discovery (five), then separate across-time and across-conversation samples (eight each).",
+          "cumulativeCoverageByCall": [
+            {
+              "tool": "discover_messages",
+              "supportedCategories": [],
+              "missingCategories": [
+                "data_privacy",
+                "model_quality",
+                "pricing",
+                "reliability",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "pricing",
+                "reliability",
+                "vendor_lock_in"
+              ]
+            },
+            {
+              "tool": "sample_messages",
+              "supportedCategories": [
+                "data_privacy",
+                "pricing",
+                "reliability"
+              ],
+              "missingCategories": [
+                "model_quality",
+                "vendor_lock_in"
+              ]
+            }
           ]
         },
         {
@@ -242,7 +401,8 @@
             "reliability",
             "vendor_lock_in"
           ],
-          "missingCategories": []
+          "missingCategories": [],
+          "strategy": "Three hand-authored queries: OpenAI AND concern-prefix, OpenAI AND needs, OpenAI AND difficult, all client-filtered. Vocabulary is fixture-informed; this is not a live agent or held-out language result."
         }
       ]
     }

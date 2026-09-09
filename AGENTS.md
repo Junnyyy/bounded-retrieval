@@ -68,6 +68,10 @@
 
 ## Discovery evaluation learnings
 
+- When comparing retrieval recipes, disclose their initial selection limits.
+  Standalone discovery uses eight excerpts; the sampling recipe starts with five.
+  Compare per-call coverage before attributing an improvement or failure to sampling.
+
 - Match counting supplies snippet offsets in one pass. Keep eligibility independent
   of matcher cursor state and row order; a bounded sample must not become small
   because later valid rows were skipped.

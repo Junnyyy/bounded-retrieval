@@ -24,8 +24,8 @@ The baseline is not exposed as an MCP tool.
 
 | Strategy | Calls | Response bytes | Supported categories |
 | --- | ---: | ---: | ---: |
-| Broad client-filtered discovery | 1 | 13,922 | 2 of 5 |
-| Ranked discovery plus two distribution samples | 3 | 30,320 | 3 of 5 |
+| Client-filtered discovery, up to 8 excerpts | 1 | 13,922 | 2 of 5 |
+| Discovery of up to 5 excerpts, then two samples of up to 8 messages | 3 | 30,320 | 3 of 5 |
 | Explicit lexical refinements | 3 | 17,122 | 5 of 5 |
 | Former fixed discovery/sample/expansion sequence | 3 | 22,060 | 0 of 5 |
 
@@ -46,8 +46,8 @@ baseline already includes matcher and sampler corrections.
 
 | Strategy | Bytes before | Bytes after | Reduction | Categories before / after |
 | --- | ---: | ---: | ---: | ---: |
-| Broad discovery | 15,444 | 13,922 | 9.85% | 0 / 2 |
-| Discovery plus two samples | 35,688 | 30,320 | 15.04% | 3 / 3 |
+| Discovery, up to 8 excerpts | 15,444 | 13,922 | 9.85% | 0 / 2 |
+| Discovery of up to 5 excerpts, then two samples | 35,688 | 30,320 | 15.04% | 3 / 3 |
 | Lexical refinements | 45,564 | 17,122 | 62.42% | 4 / 5 |
 
 Call counts did not change. Formatting alone saved 17–19% for the same selected
@@ -174,15 +174,21 @@ A fresh default run and three additional seeds tested whether the deterministic
 results changed with fixture variation. No model was called and no retrieval code
 changed. All five assertions passed on every run.
 
-| Seed | Profile | Broad discovery categories | Discovery plus samples categories | Refined categories | Refined bytes |
+| Seed | Profile | Discovery (limit 8) categories | Discovery (limit 5) plus samples categories | Refined categories | Refined bytes |
 | --- | --- | ---: | ---: | ---: | ---: |
 | `bounded-retrieval-evaluation-v1` | Month | 2 | 3 | 5 | 17,122 |
 | `research-check-a` | Month | 2 | 2 | 5 | 17,168 |
 | `research-check-b` | Month | 2 | 3 | 5 | 17,070 |
 | `research-check-c` | Week | 2 | 3 | 5 | 12,962 |
 
-Discovery plus sampling does not consistently improve category coverage. Its
-three calls used 28,394–30,398 bytes across the additional seeds. The fixed
+These are different retrieval recipes, not a controlled test of adding sampling
+to the same discovery result. Standalone discovery requests eight excerpts. The
+sampling recipe requests five excerpts, then two samples of up to eight messages
+each. Its initial five excerpts support zero planted categories in every run;
+sampling increases that coverage to two or three. It therefore improves its own
+starting selection in all four runs, while still missing some planted categories.
+
+The sampling recipe used 28,394–30,398 bytes across the additional seeds. The fixed
 refinement vocabulary remained effective, but every seed reused the generator's
 wording templates. This tests fixture variation, not independent language or
 agent query selection.
