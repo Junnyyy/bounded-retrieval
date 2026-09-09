@@ -17,7 +17,9 @@ text. Cutting the response to a few rows can discard the evidence needed to answ
 A useful retrieval tool must do both: limit what it returns and preserve enough
 information for the agent to answer, refine its query, or request more context.
 This project tests that tradeoff on questions about client concerns in a sales
-conversation dataset.
+conversation dataset. The server controls disclosure and reports what its query
+establishes. The agent remains responsible for choosing a useful query and judging
+whether the evidence answers the question.
 
 ## Design
 
@@ -84,7 +86,28 @@ wrapping. The excerpts supported both requested concerns without expansion.
 
 The answer identified two concerns. It did not establish their prevalence or claim
 to cover every concern. The [saved experiment](docs/evaluation.md#live-agent-example)
-contains the calls, citations, and comparison method.
+contains the calls, citations, and comparison method. The
+[annotated response](docs/discovery-results.md#reading-a-discovery-result) explains
+how counts, excerpts, references, and omissions support different decisions.
+
+### Choose the population before sampling
+
+A later run interpreted the same subject differently:
+
+| Query | Population searched | Week-corpus matches |
+| --- | --- | ---: |
+| Text contains `OpenAI` and `client`; no sender filter | Messages by any sender containing both words | 39 |
+| Text contains `OpenAI`; sender type is client | Client-authored messages mentioning OpenAI | 105 |
+
+The first query misses client statements that never say the word `client` and can
+include internal statements about clients. Sampling its results explores that same
+restricted population. It cannot recover messages the query excluded.
+
+The [broader live run](docs/evaluation.md#broader-live-investigation) used that first
+query and finished with two supported topics but only one of five planted
+categories. The server applied the query correctly; the query did not capture the
+intended population. An exact matching count is a fact about the query, not proof
+that the investigation answered the user's question.
 
 ## Results
 
@@ -126,12 +149,9 @@ estimate theme prevalence. The server reports incomplete scans, clipped evidence
 and rejected requests explicitly, but the agent must interpret those states.
 
 The live runs do not establish general improvements in agent quality or latency.
-A [broader live investigation](docs/evaluation.md#broader-live-investigation) used
-five retrieval calls but covered only one of the five planted categories. It
-searched for the word `client` instead of filtering client senders. Both final
-citations were supported, including a vendor-approval topic outside the planted
-labels, but the investigation missed most labelled concerns. Bounded output did
-not ensure useful query choices.
+The broader run also found a supported vendor-approval topic outside the planted
+labels. Citation validity and coverage of known categories measure different
+things; an unlabelled finding is not automatically wrong.
 
 Per-run model tokens and cost were unavailable. Output bytes count each response
 once and do not measure repeated inclusion in later model requests.
